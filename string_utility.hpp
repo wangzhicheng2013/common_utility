@@ -70,6 +70,14 @@ public:
             args[keys[i]] = values[i];
         }
     }
+    void get_special_sub_str(const std::string &original_str, char ch, std::string &sub_str) {
+        auto pos = original_str.find(ch);
+        if (std::string::npos == pos)  {
+            sub_str = original_str;
+            return;
+        }
+        sub_str.assign(original_str, 0, pos);
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()

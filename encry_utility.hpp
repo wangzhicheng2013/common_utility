@@ -6,18 +6,14 @@
 class encry_utility {
 public:
     void make_md5_str(const char *str, std::string &md5_str) {
-        MD5_CTX ctx;
         unsigned char md[64] = { 0 };
-        MD5_Init(&ctx);
-        MD5_Update(&ctx, str, strlen(str));
-        MD5_Final(md, &ctx);
-        int len = strlen((const char *)md);
-        char buf[8] = "";
-        md5_str.clear();
-        for (int i = 0;i < len;i++) {
-            snprintf(buf, sizeof(buf), "%02x", md[i]);
-            md5_str += buf;
+        MD5((unsigned char *)str, strlen(str), md);
+        char buf[64] = "";
+        for (int i = 0;i < MD5_DIGEST_LENGTH;;i++) {
+            sprintf(buf + i * 2, "%.2x", md[i]);
         }
+        buf[2 * MD5_DIGEST_LENGTH] = '\0';
+        md5_str.assign(buf);
     }
 };
 
