@@ -2,7 +2,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <time.h>
+#include <sys/time.h>
 #include <sys/stat.h>
+#include <iostream>
+#include <thread>
 #include "string_utility.hpp"
 class file_utility {
 public:
@@ -43,6 +47,11 @@ public:
             model = buf;
         }
         fclose(fp);
+    }
+    #define LOG(LEVEL, STR) log(LEVEL, __FILE__, __func__, __LINE__, STR)
+    void log(const char *level, const char *file, const char *function, uint32_t line, const char *str) {
+        std::cout << time(NULL) << "|" << std::this_thread::get_id() << "|" << level 
+            << "|" << file << "|" << function << "|" << line << "|" << str << std::endl;
     }
 };
 
