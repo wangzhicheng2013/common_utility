@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -77,6 +78,14 @@ public:
             return;
         }
         sub_str.assign(original_str, 0, pos);
+    }
+    std::string get_format_str(const char *format_str, ...) {
+        va_list args;
+        va_start(args, format_str);
+        char buf[1024] = "";
+        vsnprintf(buf, sizeof(buf), format_str, args);
+        va_end(args);
+        return buf;
     }
 };
 
