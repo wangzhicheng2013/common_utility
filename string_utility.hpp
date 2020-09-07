@@ -79,7 +79,7 @@ public:
         }
         sub_str.assign(original_str, 0, pos);
     }
-    std::string get_format_str(const char *format_str, ...) {
+    inline std::string get_format_str(const char *format_str, ...) {
         va_list args;
         va_start(args, format_str);
         char buf[1024] = "";
