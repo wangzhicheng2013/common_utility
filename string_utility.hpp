@@ -87,6 +87,23 @@ public:
         va_end(args);
         return buf;
     }
+    void split_string(const char *str, char ch, std::vector<std::string>&vec) {
+        vec.clear();
+        std::string tmp;
+        for (int i = 0;str[i];i++) {
+            if (ch == str[i]) {
+                if (!tmp.empty()) {
+                    vec.emplace_back(tmp);
+                    tmp.clear();
+                }
+                continue;
+            }
+            tmp += str[i];
+        }
+        if (!tmp.empty()) {
+            vec.emplace_back(tmp);
+        }
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
