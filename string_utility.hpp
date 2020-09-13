@@ -104,6 +104,15 @@ public:
             vec.emplace_back(tmp);
         }
     }
+    void split_string(const char *str, const char *delim, std::vector<std::string>&vec) {
+        vec.clear();
+        char *p = nullptr;
+        char *ptr = strtok_r((char *)str, delim, &p);
+        while (ptr) {
+            vec.emplace_back(ptr);
+            ptr = strtok_r(nullptr, delim, &p);
+        }
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
