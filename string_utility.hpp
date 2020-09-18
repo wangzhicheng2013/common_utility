@@ -113,6 +113,11 @@ public:
             ptr = strtok_r(nullptr, delim, &p);
         }
     }
+    inline void add_quotation(const std::string &str, std::string &new_str) {
+        new_str = "\"";
+        new_str += str;
+        new_str += "\"";
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
