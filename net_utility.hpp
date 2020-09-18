@@ -15,6 +15,14 @@ public:
                                                            mac_val & 0xff);
         mac_str = buf;
     }
+    inline void get_ipv4_addr(uint32_t ip, std::string &addr) {
+        char buf[64] = "";
+        snprintf(buf, sizeof(buf), "%u.%u.%u.%u", ((ip >> 24) & 0xFF), 
+                                                      ((ip >> 16) & 0xFF),
+                                                      ((ip >> 8) & 0xFF), 
+                                                      ((ip >> 0) & 0xFF));
+        addr = buf;
+    }
 };
 
 #define  G_NET_UTILITY single_instance<net_utility>::instance()
