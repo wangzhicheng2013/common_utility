@@ -7,7 +7,12 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <thread>
+#include <fstream>
 #include "string_utility.hpp"
+enum FILE_WRITE_MODE {
+    OVER_WRITE,
+    APPEND_WRITE
+};
 class file_utility {
 public:
     bool sed_file(const char *file_path, const char *pattern, const char *val) {
@@ -52,6 +57,57 @@ public:
     void log(const char *level, const char *file, const char *function, uint32_t line, const char *str) {
         std::cout << time(NULL) << "|" << std::this_thread::get_id() << "|" << level 
             << "|" << file << "|" << function << "|" << line << "|" << str << std::endl;
+    }
+    bool write_file_content(const char *path, const char *buf, size_t size, unsigned mode) {
+        if (!path || !buf) {
+            return false;
+        }
+        std::ofstream  ofs;
+        switch (mode)
+        {
+        case OVER_WRITE:
+            ofs.open(path, std::ios::in | std::ios::trunc);
+            if (!ofs.is_open()) {
+                return false;
+            }
+            break;
+        case APPEND_WRITE:
+            ofs.open(path, std::ios::in | std::ios::app);
+            if (!ofs.is_open()) {
+                return false;
+            }
+            break;
+        default:
+            return false;
+            break;
+        }
+        ofs.write(buf, size);
+        ofs.close();
+        return true;
+    }
+    inline bool get_file_content(const char *path, std::string &str) {
+        std::ifstream ifs(path, std::ios::in);
+        if (!ifs || !ifs.good()) {
+            return false;
+        }
+        str.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        ifs.close();
+        return !str.empty();
+    }
+    // iterms consist of item first -- configure key second configure value
+    bool sed_configure_file(const char *path, const std::vector<std::pair<std::string, std::string>>&iterms, const char *restart_cmd) {
+        if (!path || !restart_cmd || iterms.empty()) {
+            return false;
+        }
+        char buf[256] = "";
+        for (auto &iterm : iterms) {
+            snprintf(buf, sizeof(buf), "sed -i '/^%s/c\\%s=%s' %s > /dev/null &", iterm.first.c_str(), iterm.first.c_str(), iterm.second.c_str(), path);
+            if (system(buf)) {
+                return false;
+            }
+            usleep(1000);   // let shell process to finish
+        }
+        return (0 == system(restart_cmd));
     }
 };
 
