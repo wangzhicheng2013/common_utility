@@ -8,12 +8,17 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
+#include <linux/ethtool.h>
 #include <string>
 #include <vector>
 #include "single_instance.hpp"
 struct  netcard_info {
     std::string name;
     std::string ip;
+};
+enum class NETCARD_STATUS {
+    UP,
+    DOWN
 };
 class net_utility {
 public:
@@ -46,7 +51,10 @@ public:
         struct ifconf ifc = { 0 };
         ifc.ifc_len = sizeof(buf);
         ifc.ifc_buf = (caddr_t)buf;
-        ioctl(sock_fd, SIOCGIFCONF, &ifc);
+        if (ioctl(sock_fd, SIOCGIFCONF, &ifc) < 0 ) {
+            close(sock_fd);
+            return false;
+        }
         struct ifreq *ifr = (struct ifreq *)buf;
         int netcard_size = ifc.ifc_len / sizeof(struct ifreq);
         netcard_info info;
@@ -58,6 +66,40 @@ public:
         }
         close(sock_fd);
         return !infos.empty();
+    }
+    NETCARD_STATUS get_netcard_status(const char *eth_name) {
+        int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sock_fd < 0) {
+            return NETCARD_STATUS::DOWN;
+        }
+        struct ifreq ifr = { 0 };
+        strncpy(ifr.ifr_name, eth_name, sizeof(ifr.ifr_name) - 1);
+        if (ioctl(sock_fd, SIOCGIFFLAGS, &ifr) < 0 ) {
+            close(sock_fd);
+            return NETCARD_STATUS::DOWN;
+        }
+        close(sock_fd);
+        if (ifr.ifr_flags & IFF_RUNNING) {
+            return NETCARD_STATUS::UP;
+        }
+        return NETCARD_STATUS::DOWN;
+    }
+    bool netcard_link_detected(const char *eth_name) {
+        int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sock_fd < 0) {
+            return false;
+        }
+        struct ethtool_value e_value = { 0 };
+        struct ifreq ifr = { 0 };
+        e_value.cmd = 0x000000A;
+        strncpy(ifr.ifr_name, eth_name, sizeof(ifr.ifr_name) - 1);
+        ifr.ifr_data = (caddr_t)(&e_value);
+        if (ioctl(sock_fd,  0x8946, &ifr) < 0 ) {       //  SIOCETHTOOL
+            close(sock_fd);
+            return false;
+        }
+        close(sock_fd);
+        return e_value.data;
     }
 };
 
