@@ -67,6 +67,9 @@ public:
         }
         return true;
     }
+    inline int get_sem_id(key_t key) {
+        return semget(key, 0, 0);
+    }
 };
 
 #define  G_SEM_UTILITY single_instance<sem_utility>::instance()
