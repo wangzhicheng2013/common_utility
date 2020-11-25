@@ -8,15 +8,14 @@
 #include <semaphore.h>
 #include <iostream>
 #include "single_instance.hpp"
+union semun {
+    int val;
+    struct semid_ds *buf;
+    unsigned short *array;
+    struct seminfo *__buf;
+};
 class sem_utility {
 public:
-    union semun {
-        int val = 0;
-        struct semid_ds *buf = nullptr;
-        unsigned short *array = nullptr;
-        struct seminfo *__buf = nullptr;
-    };
-    
     bool init_sem(int sem_id, int val) {
         union semun tmp;
         tmp.val = val;
