@@ -9,15 +9,16 @@
 class string_utility {
 public:
     void replace_all(std::string &origin_str, const char *pattern, const char *val) {
-        size_t size = strlen(val);
-        std::string::size_type pos = 0;
+        if (!pattern || !val) {
+            return;
+        }
+        std::string::size_type pos = origin_str.find(pattern, 0);
+        int pattern_len = strlen(pattern);
+        int val_len = strlen(val);
         while (pos != std::string::npos) {
+            origin_str.replace(pos, pattern_len, val);
+            pos += val_len;
             pos = origin_str.find(pattern, pos);
-            if (std::string::npos == pos) {
-                break;
-            }
-            origin_str.replace(pos, size, val);
-            pos += size;
         }
     }
     void get_url_args(const char *url, std::unordered_map<std::string, std::string>&args) {
