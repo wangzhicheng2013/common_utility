@@ -119,6 +119,27 @@ public:
         new_str += str;
         new_str += "\"";
     }
+    void trim(std::string &str) {
+        auto first = begin(str);
+        auto last = end(str);
+        while (first != last) {
+            if ((' ' == *first) || ('\t' == *first)) {
+                ++first;
+            }
+            else {
+                break;
+            }
+        }
+        while (first != last) {
+            if ((' ' == *(last - 1)) || ('\t' == *(last - 1))) {
+                --last;
+            }
+            else {
+                break;
+            }
+        }
+        str = str.assign(first, last);
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
