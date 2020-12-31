@@ -2,13 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <net/if.h>
+#include <netdb.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <linux/ethtool.h>
+#include <ctype.h>
 #include <string>
 #include <vector>
 #include "single_instance.hpp"
@@ -100,6 +104,54 @@ public:
         }
         close(sock_fd);
         return e_value.data;
+    }
+    bool parse_addr4(const char *ip_str, uint8_t *ret) {
+        if (!ip_str || !ret) {
+            return false;
+        }
+        uint32_t a1 = 0;
+        uint32_t a2 = 0;
+        uint32_t a3 = 0;
+        uint32_t a4 = 0;
+        if (sscanf(ip_str, "%u.%u.%u.%u", &a1, &a2, &a3, &a4) != 4) {
+            return false;
+        }
+        if (a1 > 255 || a2 > 255 || a3 > 255 || a4 > 255) {
+            return false;
+        }
+        ret[0] = a1;
+        ret[1] = a2;
+        ret[2] = a3;
+        ret[3] = a4;
+        return true;
+    }
+    bool parse_addr6(const char *ip_str, uint8_t *ret) {
+        if (!ip_str || !ret) {
+            return false;
+        }
+        uint32_t seg = 0;
+        uint32_t val = 0;
+        while (*ip_str) {
+            if (8 == seg) {
+                return false;
+            }
+            if (sscanf(ip_str, "%x", &val) != 1 || val > 65535) {
+                return false;
+            }
+            ret[seg * 2] = val >> 8;
+            ret[seg * 2 + 1] = val;
+            seg++;
+            while (isxdigit(*ip_str)) {
+                ip_str++;
+            }
+            if (*ip_str) {
+                ip_str++;
+            }
+        }
+        if (seg != 8) {
+            return false;
+        }
+        return true;
     }
 };
 
