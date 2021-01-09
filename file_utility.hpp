@@ -115,6 +115,39 @@ public:
         }
         return 0 == access(path, F_OK);
     }
+    size_t get_file_size(const char *path) {
+        if (!path) {
+            return 0;
+        }
+        if (!file_existed(path)) {
+            return 0;
+        }
+        struct stat fs = { 0 };
+        if (lstat(path, &fs) < 0) {
+            return 0;
+        }
+        return fs.st_size;
+    }
+    bool dir_existed(const char *path) {
+        if (!path) {
+            return false;
+        }
+        struct stat dir_stat = { 0 };
+        if (stat(path, &dir_stat) < 0) {
+            return false;
+        }
+        return S_ISDIR(dir_stat.st_mode);
+    }
+    bool create_dir(const char *path) {
+        if (!path) {
+            return false;
+        }
+        char cmd[128] = "";
+        snprintf(cmd, sizeof(cmd), "mkdir -p %s", path);
+        int ret = system(cmd);
+        usleep(100);
+        return (0 == ret) && dir_existed(path);
+    }
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()
