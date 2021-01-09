@@ -109,6 +109,12 @@ public:
         }
         return (0 == system(restart_cmd));
     }
+    bool file_existed(const char *path) {
+        if (!path) {
+            return false;
+        }
+        return 0 == access(path, F_OK);
+    }
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()

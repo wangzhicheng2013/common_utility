@@ -1,11 +1,7 @@
 #include <iostream>
-#include "math_utility.hpp"
+#include "file_utility.hpp"
 int main() {
-    std::vector<int>rands;
-    G_MATH_UTILITY.get_uniform_random_values(100, 99, rands);
-    for (auto r : rands) {
-        std::cout << r << std::endl;
-    }
+    std::cout << G_FILE_UTILITY.file_existed("./test.cpp") << std::endl;
     
     return 0;
 }
