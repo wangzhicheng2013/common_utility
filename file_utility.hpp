@@ -148,6 +148,22 @@ public:
         usleep(100);
         return (0 == ret) && dir_existed(path);
     }
+    bool read_file_content_to_vector(const char *path, std::vector<std::string>&vec) {
+        std::ifstream ifs(path, std::ios::in);
+        if (!ifs || !ifs.is_open()) {
+            return false;
+        }
+        vec.clear();
+        std::string line;
+        while (getline(ifs, line)) {
+            if (line.empty()) {
+                continue;
+            }
+            vec.emplace_back(line);
+        }
+        ifs.close();
+        return true;
+    }
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()

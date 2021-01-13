@@ -1,8 +1,12 @@
 #include <iostream>
 #include "file_utility.hpp"
 int main() {
-    std::cout << G_FILE_UTILITY.get_file_size("./test.cpp") << std::endl;
-    std::cout << G_FILE_UTILITY.dir_existed("/home/wangbin/test/aa") << std::endl;
+    std::vector<std::string>vec;
+    if (G_FILE_UTILITY.read_file_content_to_vector("./test.cpp", vec)) {
+        for (auto &line : vec) {
+            std::cout << line << std::endl;
+        }
+    }
     
     return 0;
 }
