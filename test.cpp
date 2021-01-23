@@ -1,12 +1,13 @@
 #include <iostream>
-#include "file_utility.hpp"
+#include "time_utility.hpp"
 int main() {
-    std::vector<std::string>vec;
-    if (G_FILE_UTILITY.read_file_content_to_vector("./test.cpp", vec)) {
-        for (auto &line : vec) {
-            std::cout << line << std::endl;
-        }
-    }
+    int day = 0;
+    int week = 0;
+    int hour = 0;
+    G_TIME_UTILITY.get_gmt_current_day_week_hour(day, week, hour);
+    std::cout << "day = " << day << std::endl;
+    std::cout << "week = " << week << std::endl;
+    std::cout << "hour = " << hour << std::endl;
     
     return 0;
 }

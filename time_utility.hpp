@@ -1,8 +1,10 @@
 #pragma once
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <string>
+#include <vector>
 #include "single_instance.hpp"
 class time_utility {
 public:
@@ -22,6 +24,18 @@ public:
         char now_time[64] = "";
         strftime(now_time, sizeof(now_time), time_format, ptm);
         return now_time;
+    }
+    inline void get_gmt_current_day_week_hour(int &day, int &week, int &hour) {
+        time_t now = time(0);
+        now += 28800;
+        struct tm today = { 0 };
+        gmtime_r(&now, &today);
+        day = today.tm_mday;
+        week = today.tm_wday;
+        if (0 == week) {
+            week = 7;
+        }
+        hour = today.tm_hour;
     }
 };
 
