@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "single_instance.hpp"
 struct  netcard_info {
     std::string name;
@@ -152,6 +153,25 @@ public:
             return false;
         }
         return true;
+    }
+    int connect_udp_server(const char *ip, int port) {
+        struct sockaddr_in server_addr = { 0 };
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_port = port;
+        if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
+            std::cerr << "ip:" << ip << " inet_pton failed." << std::endl;
+            return -1;
+        }
+        int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sock_fd < 0) {
+            std::cerr << "socket(AF_INET, SOCK_DGRAM, 0) failed." << std::endl;
+            return -1;
+        }
+        if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+            std::cerr << "connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) failed." << std::endl;
+            return -1;
+        }
+        return sock_fd;
     }
 };
 
