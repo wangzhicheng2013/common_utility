@@ -164,6 +164,22 @@ public:
         ifs.close();
         return true;
     }
+    bool change_pcapng_to_pcap(const char *pcapng_file_path, std::string &pcap_file_path) {
+        const char *pos = strstr(pcapng_file_path, ".pcapng");
+        if (!pos) {
+            return false;
+        }
+        size_t len = pos - pcapng_file_path;
+        pcap_file_path.assign(pcapng_file_path, len);
+        pcap_file_path += ".pcap";
+        std::string cmd = "tcpdump -r ";
+        cmd += pcapng_file_path;
+        cmd += " -w ";
+        cmd += pcap_file_path;
+        int ret = system(cmd.c_str());
+        usleep(100);
+        return 0 == ret;
+    }
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()
