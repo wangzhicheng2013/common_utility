@@ -176,9 +176,13 @@ public:
         cmd += pcapng_file_path;
         cmd += " -w ";
         cmd += pcap_file_path;
+        cmd += " > /dev/null 2>&1";
         int ret = system(cmd.c_str());
         usleep(100);
         return 0 == ret;
+    }
+    bool delete_file(const char *file_path) {
+        return 0 == unlink(file_path);
     }
 };
 
