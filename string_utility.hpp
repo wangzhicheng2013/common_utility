@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <fcntl.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -139,6 +140,58 @@ public:
             }
         }
         str = str.assign(first, last);
+    }
+    bool make_random_string(size_t len, std::string &str) {
+        if (len > 1024) {
+            return false;
+        }
+        FILE *fp = fopen("/dev/urandom", "rb");
+        if (!fp) {
+            return false;
+        }
+        char *tmp_str = new char[len + 1];
+        if (!tmp_str) {
+            fclose(fp);
+            return false;
+        }
+        memset(tmp_str, 0, len + 1);
+        bool succ = true;
+        if (len != fread(tmp_str, sizeof(char), len, fp)) {
+            succ = false;
+        }
+        fclose(fp);
+        if (succ) {
+            str = tmp_str;
+        }
+        delete []tmp_str;
+        return succ;
+    }
+    bool make_random_hex_string(size_t len, std::string &str) {
+        if (len > 1024) {
+            return false;
+        }
+        char cmd[64] = "";
+        snprintf(cmd, sizeof(cmd), "openssl rand -hex %u", len);
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            return false;
+        }
+        char *tmp_str = new char[len + 1];
+        if (!tmp_str) {
+            pclose(fp);
+            return false;
+        }
+        memset(tmp_str, 0, len + 1);
+        bool succ = true;
+        if (!fgets(tmp_str, len, fp)) {
+            succ = false;
+        }
+        pclose(fp);
+        if (succ) {
+            str = tmp_str;
+        }
+        delete []tmp_str;
+        return succ;
     }
 };
 

@@ -1,13 +1,17 @@
 #include <iostream>
-#include "time_utility.hpp"
+#include "string_utility.hpp"
 int main() {
-    int day = 0;
-    int week = 0;
-    int hour = 0;
-    G_TIME_UTILITY.get_gmt_current_day_week_hour(day, week, hour);
-    std::cout << "day = " << day << std::endl;
-    std::cout << "week = " << week << std::endl;
-    std::cout << "hour = " << hour << std::endl;
+    int failed = 0;
+    for (int i = 0;i < 100;i++) {
+        std::string str;
+        //if (G_STRING_UTILITY.make_random_string(32, str)) // 0.007s
+        if (G_STRING_UTILITY.make_random_hex_string(32, str)) {     // 1.550s 
+            std::cout << "str = " << str << std::endl;
+            continue;
+        }
+        ++failed;
+    }
+    std::cout << "failed = " << failed << std::endl;
     
     return 0;
 }
