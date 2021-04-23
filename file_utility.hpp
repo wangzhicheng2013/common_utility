@@ -184,6 +184,13 @@ public:
     bool delete_file(const char *file_path) {
         return 0 == unlink(file_path);
     }
+	inline long get_last_change_time_for_file(const char *path) {
+		struct stat fs = { 0 };
+		if (lstat(path, &fs) < 0) {
+			return -1;
+		}
+		return fs.st_ctime;
+	}
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()
