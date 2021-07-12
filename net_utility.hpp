@@ -72,6 +72,29 @@ public:
         close(sock_fd);
         return !infos.empty();
     }
+    bool get_all_netcard_name(std::vector<std::string>&names) {
+        const char *cmd = "ifconfig | awk -F'[ :]+' '!NF{if(eth!=\"\"&&ip==\"\")print eth;eth=ip4=\"\"}/^[^ ]/{eth=$1}/inet addr:/{ip=$4}'";
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            return false;
+        }
+        names.clear();
+        char buf[64] = "";
+        int len = 0;
+        while (fgets(buf, sizeof(buf), fp)) {
+            len = strlen(buf);
+            if ('\n' == buf[len - 1]) {
+                buf[len - 1] = 0;
+            }
+            if (!strcmp("lo", buf)) {
+                continue;
+            }
+            names.push_back(buf);
+            memset(buf, 0, sizeof(buf));
+        }
+        pclose(fp);
+        return !names.empty();
+    }
     NETCARD_STATUS get_netcard_status(const char *eth_name) {
         int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock_fd < 0) {
