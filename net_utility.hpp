@@ -196,6 +196,9 @@ public:
         }
         return sock_fd;
     }
+    inline bool multicast_mac(uint64_t mac) {
+        return ((mac >> 40) & 0x01);
+    }
 };
 
 #define  G_NET_UTILITY single_instance<net_utility>::instance()
