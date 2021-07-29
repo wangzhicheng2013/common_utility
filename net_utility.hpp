@@ -199,6 +199,18 @@ public:
     inline bool multicast_mac(uint64_t mac) {
         return ((mac >> 40) & 0x01);
     }
+    inline unsigned long mac_to_long(const char *mac) {
+        int mac_int[6] = { 0 };
+        sscanf(mac, "%x:%x:%x:%x:%x:%x", &mac_int[0], &mac_int[1], &mac_int[2], &mac_int[3], &mac_int[4], &mac_int[5]);
+        unsigned long num = 0;
+        memcpy((char *)&num,     mac_int + 5, 1);
+        memcpy((char *)&num + 1, mac_int + 4, 1);
+        memcpy((char *)&num + 2, mac_int + 3, 1);
+        memcpy((char *)&num + 3, mac_int + 2, 1);
+        memcpy((char *)&num + 4, mac_int + 1, 1);
+        memcpy((char *)&num + 5, mac_int,     1);
+        return num;
+    }
 };
 
 #define  G_NET_UTILITY single_instance<net_utility>::instance()
