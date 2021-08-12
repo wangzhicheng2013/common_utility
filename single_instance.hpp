@@ -2,7 +2,7 @@
 template <class T>
 class single_instance {
 public:
-    static inline T instance() { 
+    static inline T& instance() { 
         static T obj;
         return obj;
     }
