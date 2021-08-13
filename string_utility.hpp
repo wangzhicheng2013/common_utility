@@ -193,6 +193,56 @@ public:
         delete []tmp_str;
         return succ;
     }
+    // conf_args: { tcp:11731,11732 udp:123,9900,9001 }
+    // tcp_ports: [11731,11732]
+    // tcp_num: 2
+    // udp_ports: [123,9000,9001]
+    // udp_num: 3
+    void draw_tcp_udp_ports_from_args(const char *conf_args,
+                                     int *tcp_ports,
+                                     int *tcp_num, 
+                                     int *udp_ports,
+                                     int *udp_num) {
+        if (!conf_args || !tcp_ports || !tcp_num || !udp_ports || !udp_num) {
+            return;
+        }
+        char tcp_tmp[512] = "";
+        char udp_tmp[512] = "";
+        if (strstr(conf_args, "tcp:")) {
+            sscanf(conf_args, "{ tcp:%s udp:%s }", tcp_tmp, udp_tmp);
+        }
+        else if (strstr(conf_args, "udp:")) {
+            sscanf(conf_args, "{ udp:%s }", udp_tmp);
+        }
+        *tcp_num = 0;
+        *udp_num = 0;
+        if (!strlen(tcp_tmp) && !strlen(udp_tmp)) {
+            return;
+        }
+        char *token = NULL;
+        char *save = NULL;
+        char delim[4] = ", ";
+        if (strlen(tcp_tmp) > 0) {
+            // seperate tcp ports
+            token = strtok_r(tcp_tmp, delim, &save);
+            while (token) {
+                tcp_ports[*tcp_num] = atoi(token);
+                token = strtok_r(NULL, delim, &save);
+                ++(*tcp_num);
+            }
+        }
+        token = NULL;
+        save = NULL;
+        if (strlen(udp_tmp) > 0) {
+            // seperate udp ports
+            token = strtok_r(udp_tmp, delim, &save);
+            while (token) {
+                udp_ports[*udp_num] = atoi(token);
+                token = strtok_r(NULL, delim, &save);
+                ++(*udp_num);
+            }
+        }
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
