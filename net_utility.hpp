@@ -25,6 +25,16 @@ enum class NETCARD_STATUS {
     UP,
     DOWN
 };
+union IpV4 {
+    unsigned int num;
+    struct {
+        unsigned char a;
+        unsigned char b;
+        unsigned char c;
+        unsigned char d;
+    } ip;
+};
+
 class net_utility {
 public:
     void get_mac_str(unsigned long mac_val, std::string &mac_str) {
@@ -210,6 +220,13 @@ public:
         memcpy((char *)&num + 4, mac_int + 1, 1);
         memcpy((char *)&num + 5, mac_int,     1);
         return num;
+    }
+    inline void split_ip_num(unsigned int ip_num, std::string &str) {
+        union IpV4 tmp;
+        tmp.num = ip_num;
+        char buf[64] = "";
+        snprintf(buf, sizeof(buf), "%d.%d.%d.%d", tmp.ip.d, tmp.ip.c, tmp.ip.b, tmp.ip.a);  // d->a 高位到低位
+        str = buf;
     }
 };
 
