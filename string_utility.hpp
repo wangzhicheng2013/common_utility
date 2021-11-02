@@ -243,6 +243,288 @@ public:
             }
         }
     }
+    inline void *safe_alloc(unsigned long size) {
+        void *addr = calloc(size, sizeof(char));
+        if (addr) {
+            return addr;
+        }
+        return nullptr;
+    }
+    enum STRING_OPERATION_CODE {
+        STRING_OPERATION_OK,
+        STRING_OPERATION_TRUNCATION,
+        STRING_OPERATION_ERROR,
+    };
+    int safe_strncpy(const char *src, char *dst, size_t dst_size) {
+        if (!src || !dst || !dst_size) {
+            return STRING_OPERATION_ERROR;
+        }
+        dst[dst_size - 1] = 0;
+        if (!strncpy(dst, src, dst_size)) {
+            return STRING_OPERATION_ERROR;
+        }
+        if (dst[dst_size - 1]) {
+            dst[dst_size - 1] = 0;
+            return STRING_OPERATION_TRUNCATION;
+        }
+        return STRING_OPERATION_OK;
+    }
+    // dst_size不包括\0
+    char *safe_strndup(const char *src, size_t dst_size) {
+        size_t total_size = dst_size + 1;       // 留取\0
+        char *dst = (char *)safe_alloc(total_size);       
+        if (!dst) {
+            return nullptr;
+        }
+        if (STRING_OPERATION_ERROR == safe_strncpy(src, dst, total_size)) {
+            free(dst);
+            return nullptr;
+        }
+        return dst;
+    }
+    char **extended_split_string(const char *str,
+                          const char *sep_chars, 
+                          int max_toks, 
+                          int *num_toks, 
+                          char meta_char) {
+        if (!str || !strlen(str) || (sep_chars && !strlen(sep_chars))) {
+            return nullptr;
+        }
+        static const char *white_space = " \t";
+        if (!sep_chars) {
+            sep_chars = white_space;
+        }
+        if (!check_sep_chars(sep_chars, meta_char)) {
+            return nullptr;
+        }
+        int tok_start = find_first_token(str, sep_chars);
+        if (-1 == tok_start) {
+            return nullptr;
+        }
+        if (1 == max_toks) {
+            return make_only_one_token(str, tok_start, num_toks);
+        }
+        bool escaped = false;
+        static const int TOKS_BUF_SIZE = 100;
+        static const int toks_buf_size_increment = 10;
+        char *toks_buf[TOKS_BUF_SIZE] = { 0 };
+        size_t toks_buf_size = TOKS_BUF_SIZE;
+        char **toks_alloc = nullptr;
+        char **toks = toks_buf;
+        char **retstr = nullptr;
+        size_t cur_tok = 0;
+        int i = 0, j = 0;
+        for (i = tok_start;str[i];i++) {
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (meta_char == str[i]) {
+                escaped = true;
+                continue;
+            }
+            if (!is_sep_char(sep_chars, str[i])) {
+                continue;
+            }
+            // 开始切出token
+            for (j = i;j > tok_start;j--) {
+                if (!isspace(str[j - 1])) {
+                    break;
+                }
+            }
+            if (tok_start == j) {
+                continue;
+            }
+            toks[cur_tok++] = copy_token(&str[tok_start], j - tok_start, sep_chars, meta_char);
+            // 检测余下的字符串是否只含有分隔符或空格
+            for (;str[i];i++) {
+                if (!is_sep_char(sep_chars, str[i]) && !isspace(str[i])) {
+                    break;
+                }
+            }
+            if (!str[i]) {
+                *num_toks = cur_tok;
+                if (toks != toks_alloc) {
+                    retstr = (char **)safe_alloc(sizeof(char *) * cur_tok);
+                    memcpy(retstr, toks, sizeof(char *) * cur_tok);
+                }
+                else {
+                    retstr = toks;
+                }
+                return retstr;
+            }
+            // 已达到token数 使用toks_alloc分配新内存 将旧内容（可能是toks_buf或toks_alloc）拷贝到toks_alloc
+            if (toks_buf_size == cur_tok) {
+                char **tmp = nullptr;
+                if (toks_alloc) {
+                    tmp = toks_alloc;
+                }
+                else {
+                    tmp = toks_buf;
+                }
+                if (max_toks) {
+                    toks_buf_size = max_toks;
+                }
+                else {
+                    toks_buf_size = cur_tok + toks_buf_size_increment;
+                }
+                toks_alloc = (char **)safe_alloc(sizeof(char *) * toks_buf_size);
+                memcpy(toks_alloc, tmp, sizeof(char *) * cur_tok);
+                toks = toks_alloc;
+                if (tmp != toks_buf) {
+                    free(tmp);
+                }
+            }
+            if (max_toks && (1 + cur_tok == max_toks)) {
+                *num_toks = cur_tok + 1;
+                if (toks != toks_alloc) {
+                    retstr = (char **)safe_alloc(sizeof(char *) * (cur_tok + 1));
+                    memcpy(retstr, toks, sizeof(char *) * (cur_tok + 1));
+                }
+                else {
+                    retstr = toks;
+                }
+                for (int j = strlen(str);j > tok_start;j--) {
+                    if (!isspace(str[j - 1])) {
+                        break;
+                    }
+                }
+                retstr[cur_tok] = safe_strndup(&str[i], j - i);
+                if (!retstr[cur_tok]) {
+                    extended_split_free(&retstr, cur_tok + 1);
+                    return nullptr;
+                }
+                return retstr;
+            }
+            tok_start = i;
+        }
+        // str都是转义字符
+        if (escaped) {
+            for (i = 0;i < cur_tok;i++) {
+                free(toks[i]);
+            }
+            if (toks == toks_alloc) {
+                free(toks_alloc);
+            }
+            return nullptr;
+        }
+        for (j = i;j > tok_start;j--) {
+            if (!isspace(str[j - 1])) {
+                break;
+            }
+        }
+        // 如果启用分配多余内存 则toks == toks_alloc
+        if (toks != toks_alloc) {
+            retstr = (char **)safe_alloc(sizeof(char *) * (cur_tok + 1));
+            memcpy(retstr, toks, sizeof(char *) * (cur_tok + 1));
+        }
+        else {
+            retstr = toks;
+        }
+        retstr[cur_tok] = copy_token(&str[tok_start], j - tok_start, sep_chars, meta_char);
+        *num_toks = cur_tok + 1;
+        return retstr;
+    }
+    void extended_split_free(char ***pbuf, int num_toks) {
+        if (!pbuf || !(*pbuf)) {
+            return;
+        }
+        char **buf = *pbuf;
+        for (int i = 0;i < num_toks;i++) {
+            if (buf[i]) {
+                free(buf[i]);
+                buf[i] = nullptr;
+
+            }
+        }
+        free(buf);
+        *pbuf = nullptr;
+    }
+private:
+    bool is_sep_char(const char *sep_chars, char ch) {
+        for (int i = 0;sep_chars[i];i++) {
+            if (ch == sep_chars[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // abc=>abc
+    // abc\taa=>abc\taa
+    // abc\\a=>abc\a
+    // abc\\\\a=>abc\\a
+    // abc\\\ta=>abc\ta
+    // abc\\ta=>abc\ta
+    char *copy_token(const char *str, int len, const char *sep_chars, char meta_char) {
+        bool is_meta = false;
+        int token_len = 0;
+        for (int i = 0;i < len;i++) {
+            if (!is_meta) {
+                if (meta_char == str[i]) {
+                    is_meta = true;
+                    continue;
+                }
+            }
+            else {
+                if (!is_sep_char(sep_chars, str[i])) {
+                    ++token_len;
+                }
+                is_meta = false;
+            }
+            ++token_len;
+        }
+        char *token = (char *)safe_alloc(token_len + 1);
+        if (!token) {
+            return nullptr;
+        }
+        is_meta = false;
+        int i = 0, j = 0;
+        for (;i < len;i++) {
+            if (!is_meta) {
+                if (meta_char == str[i]) {
+                    is_meta = true;
+                    continue;
+                }
+            }
+            else {
+                if (!is_sep_char(sep_chars, str[i])) {
+                    token[j++] = meta_char;
+                }
+                is_meta = false;
+            }
+            token[j++] = str[i];
+        }
+        return token;
+    }
+    bool check_sep_chars(const char *sep_chars, char meta_char) {
+        for (int i = 0;sep_chars[i];i++) {
+            if (meta_char == sep_chars[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    int find_first_token(const char *str, const char *sep_chars) {
+        for (int i = 0;str[i];i++) {
+            if (!is_sep_char(sep_chars, str[i]) && !isspace(str[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    char **make_only_one_token(const char *str, int token_start, int *num_toks) {
+        char **rest_str = (char **)safe_alloc(sizeof(char *));
+        if (!rest_str) {
+            return nullptr;
+        }
+        rest_str[0] = safe_strndup(&str[token_start], strlen(str) - token_start);
+        if (!rest_str[0]) {
+            extended_split_free(&rest_str, 1);
+            return nullptr;
+        }
+        *num_toks = 1;
+        return rest_str;
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
