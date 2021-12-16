@@ -251,9 +251,9 @@ public:
         return nullptr;
     }
     enum STRING_OPERATION_CODE {
-        STRING_OPERATION_OK,
-        STRING_OPERATION_TRUNCATION,
-        STRING_OPERATION_ERROR,
+        STRING_OPERATION_ERROR = -1,
+        STRING_OPERATION_TRUNCATION = -2,
+        STRING_OPERATION_OK = 0,
     };
     int safe_strncpy(const char *src, char *dst, size_t dst_size) {
         if (!src || !dst || !dst_size) {
@@ -439,6 +439,44 @@ public:
         }
         free(buf);
         *pbuf = nullptr;
+    }
+    int str_len(const char *buf, int buf_size) {
+        int i = 0;
+        if (!buf || buf_size <= 0) {
+            return STRING_OPERATION_ERROR;
+        }
+        for (;i < buf_size;i++) {
+            if ('\0' == buf[i]) {
+                break;
+            }
+        }
+        if (i >= buf_size) {
+            return STRING_OPERATION_ERROR;
+        }
+        return i;
+    }
+    int append_sprintf(char *buf, size_t buf_size, const char *format, ...) {
+        if (!buf || !buf_size || !format) {
+            return -1;
+        }
+        int string_len = str_len(buf, buf_size);
+        if (STRING_OPERATION_ERROR == string_len) {
+            buf[0] = '\0';
+            string_len = 0;
+        }
+        buf[buf_size - 1] = '\0';
+        va_list ap;
+        va_start(ap, format);
+        int ret = vsnprintf(buf + string_len, buf_size - string_len, format, ap);
+        va_end(ap);
+        if (ret < 0) {
+            return STRING_OPERATION_ERROR;
+        }
+        if (buf[buf_size - 1] || (ret >= buf_size - string_len)) {
+            buf[buf_size - 1] = '\0';
+            return STRING_OPERATION_TRUNCATION;
+        }
+        return STRING_OPERATION_OK;
     }
 private:
     bool is_sep_char(const char *sep_chars, char ch) {
