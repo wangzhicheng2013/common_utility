@@ -1,11 +1,10 @@
 #include <iostream>
-#include "string_utility.hpp"
+#include "random_utility.hpp"
 int main() {
-    const int BUF_SIZE = 1024;
-    char buf[BUF_SIZE] = "";
-    G_STRING_UTILITY.append_sprintf(buf, BUF_SIZE, "hello%d", 10);
-    G_STRING_UTILITY.append_sprintf(buf, BUF_SIZE, " world%d", 100);
-    std::cout << buf << std::endl;
+    int n = 100;
+    for (int i = 0;i < n;i++) {
+        std::cout << G_RANDOM_UTILITY.get_range_random(n) << std::endl;    
+    }
 
     return 0;
 }
