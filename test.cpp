@@ -3,7 +3,7 @@
 int main() {
     int n = 100;
     for (int i = 0;i < n;i++) {
-        std::cout << G_RANDOM_UTILITY.get_range_random(n) << std::endl;    
+        std::cout << G_RANDOM_UTILITY.gaussrand() << std::endl;    
     }
 
     return 0;
