@@ -1,10 +1,7 @@
 #include <iostream>
-#include "random_utility.hpp"
+#include "math_utility.hpp"
 int main() {
-    int n = 100;
-    for (int i = 0;i < n;i++) {
-        std::cout << G_RANDOM_UTILITY.gaussrand() << std::endl;    
-    }
+    std::cout << G_MATH_UTILITY.double_difference(1.0, 1.00001) << std::endl;    
 
     return 0;
 }

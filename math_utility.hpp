@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
 #include <vector>
 #include <set>
@@ -57,6 +58,12 @@ public:
                 }
             }
         }
+    }
+    double double_difference(double a, double b) {
+        double abs_a = abs(a);
+        double abs_b = abs(b);
+        double d = std::max(abs_a, abs_b);
+        return (0.0 == d) ? 0.0 : abs(a - b) / d;
     }
 };
 
