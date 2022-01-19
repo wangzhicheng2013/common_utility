@@ -5,6 +5,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <stdarg.h>
 #include <iostream>
 #include <thread>
 #include <fstream>
@@ -191,6 +192,13 @@ public:
 		}
 		return fs.st_ctime;
 	}
+    void format_printf(const char *fmt, ...) {
+        va_list argp;
+        va_start(argp, fmt);
+        vfprintf(stdout, fmt, argp);
+        va_end(argp);
+        printf("\n");
+    }
 };
 
 #define  G_FILE_UTILITY single_instance<file_utility>::instance()

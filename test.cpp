@@ -1,7 +1,7 @@
 #include <iostream>
-#include "math_utility.hpp"
+#include "file_utility.hpp"
 int main() {
-    std::cout << G_MATH_UTILITY.double_difference(1.0, 1.00001) << std::endl;    
+    G_FILE_UTILITY.format_printf("%s %d %d", "Hello format printf", 18, 13);
 
     return 0;
 }
