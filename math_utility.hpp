@@ -65,6 +65,18 @@ public:
         double d = std::max(abs_a, abs_b);
         return (0.0 == d) ? 0.0 : abs(a - b) / d;
     }
+    uint64_t get_fibonacci(unsigned int n, unsigned int max_n = 100) {
+        if (0 == n) {
+            return 0;
+        }
+        if (1 == n) {
+            return 1;
+        }
+        if (n <= max_n) {
+            return get_fibonacci(n - 1) + get_fibonacci(n - 2);
+        }
+        return 0;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()

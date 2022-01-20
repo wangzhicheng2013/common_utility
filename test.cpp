@@ -1,7 +1,9 @@
 #include <iostream>
-#include "file_utility.hpp"
+#include "math_utility.hpp"
 int main() {
-    G_FILE_UTILITY.format_printf("%s %d %d", "Hello format printf", 18, 13);
-
+    for (unsigned i = 0; i < 10; i++) {
+        std::cout << G_MATH_UTILITY.get_fibonacci(i) << std::endl;
+    }
+    
     return 0;
 }
