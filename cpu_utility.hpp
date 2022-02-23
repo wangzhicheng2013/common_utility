@@ -30,11 +30,18 @@ public:
     inline bool run_in_cpu(int cpu_no) {
         cpu_set_t get = { 0 };
         CPU_ZERO(&get);
-        if (sched_getaffinity(0, sizeof(cpu_set_t), get) < 0) {
+        if (sched_getaffinity(0, sizeof(cpu_set_t), &get) < 0) {
             return false;
         }
         return CPU_ISSET(cpu_no, &get);
     }
+	bool cpu_is_little_endian() {
+		static const union {
+			int a;
+			char b;
+		} tmp { 1 } ;
+		return 1 == tmp.b;
+	}
 };
 
 #define  G_CPU_UTILITY single_instance<cpu_utility>::instance()
