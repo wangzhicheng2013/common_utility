@@ -83,7 +83,7 @@ public:
         if (base < 2 || base > 16) {
             return nullptr;
         }
-        const char *p = ret_buf[sizeof(ret_buf) - 1];
+        char *p = &ret_buf[sizeof(ret_buf) - 1];
         *p = 0;
         do {
             *--p = "0123456789ABCDEF"[num % base];
