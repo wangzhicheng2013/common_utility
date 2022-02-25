@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include <time.h>
 #include <vector>
 #include <set>
@@ -76,6 +77,19 @@ public:
             return get_fibonacci(n - 1) + get_fibonacci(n - 2);
         }
         return 0;
+    }
+    const char *base_conv(unsigned int num, unsigned short base) {
+        static char ret_buf[sizeof(int) * CHAR_BIT + 1];
+        if (base < 2 || base > 16) {
+            return nullptr;
+        }
+        const char *p = ret_buf[sizeof(ret_buf) - 1];
+        *p = 0;
+        do {
+            *--p = "0123456789ABCDEF"[num % base];
+            num /= base;
+        } while (num);
+        return p;
     }
 };
 
