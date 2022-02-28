@@ -91,6 +91,32 @@ public:
         } while (num);
         return p;
     }
+    unsigned short interger_has_one_count(unsigned int num) {
+        const static unsigned short BIT_COUNTS[] = {
+            0,          // 0000 -> 0个1  0索引号   
+            1,          // 0001 -> 1个1  1索引号   
+            1,          // 0010 -> 1个1  2索引号   
+            2,          // 0011 -> 2个1  3索引号   
+            1,          // 0100 -> 1个1  4索引号   
+            2,          // 0101 -> 2个1  5索引号
+            2,          // 0110 -> 2个1  6索引号
+            3,          // 0111 -> 3个1  7索引号
+            1,          // 1000 -> 1个1  8索引号
+            2,          // 1001 -> 2个1  9索引号
+            2,          // 1011 -> 3个1  10索引号
+            3,          // 1011 -> 3个1  11索引号
+            2,          // 1100 -> 2个1  12索引号
+            3,          // 1101 -> 3个1  13索引号
+            3,          // 1110 -> 3个1  14索引号
+            4           // 1111 -> 4个1  15索引号
+        };
+        unsigned short one_count = 0;
+        while (num) {
+            one_count += BIT_COUNTS[num & 0x0f];
+            num >>= 4;
+        }
+        return one_count;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
