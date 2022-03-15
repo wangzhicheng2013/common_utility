@@ -23,11 +23,14 @@ public:
             }
         }
         for (i = length - 1;i > 0;--i) {
+            if (BIG_HEAP != type && SMALL_HEAP != type) {
+                continue;
+            }
             std::swap(arr[i], arr[0]);
             if (BIG_HEAP == type) {
                 big_heap_adjust(arr, 0, i);
             }
-            else if (SMALL_HEAP == type) {
+            else {
                 small_heap_adjust(arr, 0, i);
             }
         }
