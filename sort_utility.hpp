@@ -1,7 +1,6 @@
 #pragma once
 #include <stdio.h>
 #include <string.h>
-#include "single_instance.hpp"
 enum HEAP_TYPE {
     BIG_HEAP,
     SMALL_HEAP,
@@ -63,5 +62,3 @@ private:
         }
     }
 };
-
-#define  G_SORT_UTILITY single_instance<sort_utility>::instance()
