@@ -3,8 +3,8 @@
 #include <string.h>
 #include "single_instance.hpp"
 enum HEAP_TYPE {
-    BIG_HEAP;
-    SMALL_HEAP;
+    BIG_HEAP,
+    SMALL_HEAP,
 }
 template <class T>
 class sort_utility {
