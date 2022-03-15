@@ -5,6 +5,10 @@ enum HEAP_TYPE {
     BIG_HEAP,
     SMALL_HEAP,
 };
+enum SORT_TYPE {
+    ASC,
+    DESC,
+};
 template <class T>
 class sort_utility {
 public:
