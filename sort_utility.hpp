@@ -1,0 +1,67 @@
+#pragma once
+#include <stdio.h>
+#include <string.h>
+#include "single_instance.hpp"
+enum HEAP_TYPE {
+    BIG_HEAP;
+    SMALL_HEAP;
+}
+template <class T>
+class sort_utility {
+public:
+    void heap_sort(T arr[], int length, int type) {
+        int i = 0;
+        for (i = length / 2 - 1;i >= 0;i--) {
+            if (BIG_HEAP == type) {
+                big_heap_adjust(arr, i, length);
+            }
+            else if (SMALL_HEAP == type) {
+                small_heap_adjust(arr, i, length);
+            }
+        }
+        for (i = length - 1;i > 0;--i) {
+            std::swap(arr[i], arr[0]);
+            if (BIG_HEAP == type) {
+                big_heap_adjust(arr, 0, i);
+            }
+            else if (SMALL_HEAP == type) {
+                small_heap_adjust(arr, 0, i);
+            }
+        }
+    }
+private:
+    void big_heap_adjust(T arr[], int i, int length) {
+        int child = 0;
+        while (2 * i + 1 < length) {
+            child = 2 * i + 1;
+            if (child < length - 1 && arr[child + 1] > arr[child]) {    // 指向最大的孩子节点
+                ++child;
+            }
+            if (arr[i] < arr[child]) {
+                std::swap(arr[i], arr[child]);
+            }
+            else {
+                break;
+            }
+            i = child;
+        }
+    }
+    void small_heap_adjust(T arr[], int i, int length) {
+        int child = 0;
+        while (2 * i + 1 < length) {
+            child = 2 * i + 1;
+            if (child < length - 1 && arr[child + 1] < arr[child]) {    // 指向最大的孩子节点
+                ++child;
+            }
+            if (arr[i] > arr[child]) {
+                std::swap(arr[i], arr[child]);
+            }
+            else {
+                break;
+            }
+            i = child;
+        }
+    }
+};
+
+#define  G_SORT_UTILITY single_instance<sort_utility>::instance()

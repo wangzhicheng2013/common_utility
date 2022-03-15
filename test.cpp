@@ -1,7 +1,11 @@
 #include <iostream>
-#include "math_utility.hpp"
+#include "sort_utility.hpp"
 int main() {
-    std::cout << G_MATH_UTILITY.base_conv(18, 2) << std::endl;
+    int arr[] = { 9, 10, 3, -1, 6 };
+    G_SORT_UTILITY<int>.heap_sort(arr, sizeof(arr) / sizeof(int));
+    for (auto i : arr) {
+        std::cout << i << std::endl;
+    }
     
     return 0;
 }
