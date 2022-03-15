@@ -4,7 +4,7 @@
 enum HEAP_TYPE {
     BIG_HEAP,
     SMALL_HEAP,
-}
+};
 template <class T>
 class sort_utility {
 public:
