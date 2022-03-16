@@ -13,26 +13,24 @@ template <class T>
 class sort_utility {
 public:
     void heap_sort(T arr[], int length, int type) {
+        if (length <= 0 || ((BIG_HEAP != type && SMALL_HEAP != type))) {
+            return;
+        }
         int i = 0;
         for (i = length / 2 - 1;i >= 0;i--) {
             if (BIG_HEAP == type) {
                 big_heap_adjust(arr, i, length);
-            }
-            else if (SMALL_HEAP == type) {
-                small_heap_adjust(arr, i, length);
-            }
-        }
-        for (i = length - 1;i > 0;--i) {
-            if (BIG_HEAP != type && SMALL_HEAP != type) {
                 continue;
             }
+            small_heap_adjust(arr, i, length);
+        }
+        for (i = length - 1;i > 0;--i) {
             std::swap(arr[i], arr[0]);
             if (BIG_HEAP == type) {
                 big_heap_adjust(arr, 0, i);
+                continue;
             }
-            else {
-                small_heap_adjust(arr, 0, i);
-            }
+            small_heap_adjust(arr, 0, i);
         }
     }
 private:
