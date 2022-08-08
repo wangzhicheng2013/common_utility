@@ -1,12 +1,10 @@
 #include <iostream>
-#include "sort_utility.hpp"
+#include "color_log.hpp"
 int main() {
-    int arr[] = { 9, 10, 3, -1, 6 };
-    sort_utility<int>su;
-    su.heap_sort(arr, sizeof(arr) / sizeof(int), ASC);
-    for (auto i : arr) {
-        std::cout << i << std::endl;
-    }
+	LOG_E("ERROR!");
+	LOG_W("WARN!");
+	LOG_I("INFO!");
+	LOG_D("DEBUG!");
     
     return 0;
 }
