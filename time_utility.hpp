@@ -5,7 +5,12 @@
 #include <sys/time.h>
 #include <string>
 #include <vector>
+#include <chrono>
 #include "single_instance.hpp"
+enum CLOCK_TYPE {
+    SYSTEM_CLOCK,
+    STEADY_CLOCK
+};
 class time_utility {
 public:
     inline void make_utc_date(long time_stamp, std::string &date_str, bool is_milli = true) {
@@ -36,6 +41,36 @@ public:
             week = 7;
         }
         hour = today.tm_hour;
+    }
+    inline int64_t get_now_microsecs(CLOCK_TYPE type = SYSTEM_CLOCK) {
+        if (SYSTEM_CLOCK == type) {
+            auto now = std::chrono::system_clock::now();
+            auto now_tp = std::chrono::time_point_cast<std::chrono::microseconds>(now);
+            auto us = now_tp.time_since_epoch().count();
+            return us;
+        }
+        else if (STEADY_CLOCK == type) {
+            auto now = std::chrono::steady_clock::now();
+            auto now_tp = std::chrono::time_point_cast<std::chrono::microseconds>(now);
+            auto us = now_tp.time_since_epoch().count();
+            return us;
+        }
+        return -1;
+    }
+    inline int64_t get_now_millsecs(CLOCK_TYPE type = SYSTEM_CLOCK) {
+        if (SYSTEM_CLOCK == type) {
+            auto now = std::chrono::system_clock::now();
+            auto now_tp = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+            auto us = now_tp.time_since_epoch().count();
+            return us;
+        }
+        else if (STEADY_CLOCK == type) {
+            auto now = std::chrono::steady_clock::now();
+            auto now_tp = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+            auto us = now_tp.time_since_epoch().count();
+            return us;
+        }
+        return -1;
     }
 };
 

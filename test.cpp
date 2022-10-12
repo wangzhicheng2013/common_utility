@@ -1,10 +1,9 @@
 #include <iostream>
-#include "color_log.hpp"
+#include "time_utility.hpp"
 int main() {
-	LOG_E("ERROR!");
-	LOG_W("WARN!");
-	LOG_I("INFO!");
-	LOG_D("DEBUG!");
+	std::cout << G_TIME_UTILITY.get_now_microsecs() << std::endl;
+	std::cout << G_TIME_UTILITY.get_now_millsecs() << std::endl;
+
     
     return 0;
 }
