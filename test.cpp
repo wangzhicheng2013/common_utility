@@ -1,9 +1,6 @@
 #include <iostream>
-#include "time_utility.hpp"
+#include "file_utility.hpp"
 int main() {
-	std::cout << G_TIME_UTILITY.get_now_microsecs() << std::endl;
-	std::cout << G_TIME_UTILITY.get_now_millsecs() << std::endl;
-
-    
+	std::cout << G_FILE_UTILITY.file_is_stready("./test.cpp") << std::endl;
     return 0;
 }

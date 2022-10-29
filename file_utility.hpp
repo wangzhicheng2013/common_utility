@@ -192,6 +192,13 @@ public:
 		}
 		return fs.st_ctime;
 	}
+    inline bool file_is_stready(const char *path) {
+        long t = get_last_change_time_for_file(path);
+        if (t < 0) {
+            return false;
+        }
+        return (time(nullptr) - t) >= 3;
+    }
     void format_printf(const char *fmt, ...) {
         va_list argp;
         va_start(argp, fmt);
