@@ -1,7 +1,21 @@
 #pragma once
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 #include "single_instance.hpp"
+typedef struct __tag_ASVL_OFFSCREEN {
+    unsigned int u32PixelArrayFormat;
+    int i32Width;
+    int i32Height;
+    unsigned char* ppu8Plane[4];
+    int pi32Pitch[4];
+}ASVLOFFSCREEN, *LPASVLOFFSCREEN;
+enum IMAGE_FORMAT {
+    /*8 bit Y plane followed by 8 bit 2x2 subsampled UV planes*/
+    ASVL_PAF_NV12 = 0x801,
+    /*8 bit Y plane followed by 8 bit 2x2 subsampled VU planes*/
+    ASVL_PAF_NV21 = 0x802,
+};
 class image_utility {
 public:
     // Correction of abscissa according to width
@@ -64,5 +78,42 @@ public:
             memset(ppu8Plane_uv + left + j / 2 * width, 128, w);
         }
     }
+    bool read_image_data(const char *file_path, ASVLOFFSCREEN *image) {
+        if (!file_path || !image) {
+            return false;
+        }
+        int  frame_length = 0;
+        switch (image->u32PixelArrayFormat)
+        {
+        case ASVL_PAF_NV12:
+        case ASVL_PAF_NV21:
+            frame_length = image->i32Height * image->pi32Pitch[0] * 3 / 2;
+            break;
+        default:
+            frame_length = image->i32Height * image->pi32Pitch[0] * 3;
+            break;
+        }
+        if (0 == frame_length) {
+            return false;
+        }
+        if (image->ppu8Plane[0] != nullptr) {
+            free(image->ppu8Plane[0]);
+        }
+        image->ppu8Plane[0]  = (unsigned char*)malloc(frame_length);
+        if (nullptr == image->ppu8Plane[0]) {
+            return false;
+        }
+        image->ppu8Plane[1] = image->ppu8Plane[0] + image->i32Height * pImage->pi32Pitch[0];
+        FILE *pFile = fopen(file_path, "rb");
+        if(nullptr != pFile){
+            fread(image->ppu8Plane[0], 1, frame_length, pFile);
+            fclose(pFile);
+            return true;
+        }
+        free(image->ppu8Plane[0]);
+        image->ppu8Plane[0] = image->ppu8Plane[1] = nullptr;
+        return false;
+    }
+};
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
