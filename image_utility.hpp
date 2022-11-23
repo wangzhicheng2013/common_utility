@@ -103,7 +103,7 @@ public:
         if (nullptr == image->ppu8Plane[0]) {
             return false;
         }
-        image->ppu8Plane[1] = image->ppu8Plane[0] + image->i32Height * pImage->pi32Pitch[0];
+        image->ppu8Plane[1] = image->ppu8Plane[0] + image->i32Height * image->pi32Pitch[0];
         FILE *pFile = fopen(file_path, "rb");
         if(nullptr != pFile){
             fread(image->ppu8Plane[0], 1, frame_length, pFile);
@@ -113,6 +113,263 @@ public:
         free(image->ppu8Plane[0]);
         image->ppu8Plane[0] = image->ppu8Plane[1] = nullptr;
         return false;
+    }
+    bool convert_i420_nv12(const char *i420_file_path, size_t width, size_t height, const char *nv12_file_path) {
+        if (!i420_file_path || !nv12_file_path) {
+            return false;
+        }
+        FILE *fp = fopen(i420_file_path, "rb");
+        if (!fp) {
+            return false;
+        }
+        fseek(fp, 0, SEEK_END);
+        size_t file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        size_t y_size = width * height;
+        size_t uv_size = y_size / 4;
+        if (file_size != (y_size + uv_size * 2)) {
+            fclose(fp);
+            return false;
+        }
+        char *i420_content = (char *)malloc(sizeof(char) * file_size);
+        if (!i420_content) {
+            fclose(fp);
+            return false;
+        }
+        if (file_size != fread(i420_content, 1, file_size, fp)) {
+            free(i420_content);
+            fclose(fp);
+            return false;
+        }
+        fclose(fp);
+        // convert i420 to nv12
+        char *nv12_content = (char *)malloc(sizeof(char) * file_size);
+        if (!nv12_content) {
+            free(i420_content);
+            return false;
+        }
+        // copy y channel
+        memcpy(nv12_content, i420_content, y_size);
+        // copy uv channel
+        char *i420_u_base = i420_content + y_size;
+        char *i420_v_base = i420_u_base + uv_size;
+        char *nv12_uv_base = nv12_content + y_size;
+        int i = 0, j = 0;
+        for (;i < uv_size;i++) {
+            nv12_uv_base[j] = i420_u_base[i];
+            nv12_uv_base[j + 1] = i420_v_base[i];
+            j += 2;
+        }
+        free(i420_content);
+        fp = fopen(nv12_file_path, "wb");
+        if (!fp) {
+            free(nv12_content);
+            return false;
+        }
+        if (file_size != fwrite(nv12_content, 1, file_size, fp)) {
+            free(nv12_content);
+            fclose(fp);
+            return false;
+        }
+        free(nv12_content);
+        fclose(fp);
+        return true;
+    }
+    bool convert_i420_nv21(const char *i420_file_path, size_t width, size_t height, const char *nv21_file_path) {
+        if (!i420_file_path || !nv21_file_path) {
+            return false;
+        }
+        FILE *fp = fopen(i420_file_path, "rb");
+        if (!fp) {
+            return false;
+        }
+        fseek(fp, 0, SEEK_END);
+        size_t file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        size_t y_size = width * height;
+        size_t uv_size = y_size / 4;
+        if (file_size != (y_size + uv_size * 2)) {
+            fclose(fp);
+            return false;
+        }
+        char *i420_content = (char *)malloc(sizeof(char) * file_size);
+        if (!i420_content) {
+            fclose(fp);
+            return false;
+        }
+        if (file_size != fread(i420_content, 1, file_size, fp)) {
+            free(i420_content);
+            fclose(fp);
+            return false;
+        }
+        fclose(fp);
+        // convert i420 to nv21
+        char *nv21_content = (char *)malloc(sizeof(char) * file_size);
+        if (!nv21_content) {
+            free(i420_content);
+            return false;
+        }
+        // copy y channel
+        memcpy(nv21_content, i420_content, y_size);
+        // copy uv channel
+        char *i420_u_base = i420_content + y_size;
+        char *i420_v_base = i420_u_base + uv_size;
+        char *nv21_uv_base = nv21_content + y_size;
+        int i = 0, j = 0;
+        for (;i < uv_size;i++) {
+            nv21_uv_base[j] = i420_v_base[i];
+            nv21_uv_base[j + 1] = i420_u_base[i];
+            j += 2;
+        }
+        free(i420_content);
+        fp = fopen(nv21_file_path, "wb");
+        if (!fp) {
+            free(nv21_content);
+            return false;
+        }
+        if (file_size != fwrite(nv21_content, 1, file_size, fp)) {
+            free(nv21_content);
+            fclose(fp);
+            return false;
+        }
+        free(nv21_content);
+        fclose(fp);
+        return true;
+    }
+
+    bool convert_uyvy_nv12(const char *uyvy_file_path, size_t width, size_t height, const char *nv12_file_path) {
+        if (!uyvy_file_path || !nv12_file_path) {
+            return false;
+        }
+        FILE *fp = fopen(uyvy_file_path, "rb");
+        if (!fp) {
+            return false;
+        }
+        fseek(fp, 0, SEEK_END);
+        size_t file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        size_t frame_size = width * height * 2;
+        if (file_size != frame_size) {
+            fclose(fp);
+            return false;
+        }
+        char *uyvy_content = (char *)malloc(sizeof(char) * file_size);
+        if (!uyvy_content) {
+            fclose(fp);
+            return false;
+        }
+        if (file_size != fread(uyvy_content, 1, file_size, fp)) {
+            free(uyvy_content);
+            fclose(fp);
+            return false;
+        }
+        fclose(fp);
+        // convert uyvy to nv12
+        frame_size = width * height * 3 / 2;
+        char *nv12_content = (char *)malloc(sizeof(char) * frame_size);
+        if (!nv12_content) {
+            free(uyvy_content);
+            return false;
+        }
+        size_t y_size = width * height;
+        size_t pixels_in_a_row = width * 2;
+        char *nv12_y_ptr = nv12_content;
+        char *nv12_uv_ptr = nv12_content + y_size;
+        int lines = 0;
+        for (int i = 0;i < file_size;i += 4) {
+            // copy y channel
+            *nv12_y_ptr++ = uyvy_content[i + 1];
+            *nv12_y_ptr++ = uyvy_content[i + 3];
+            if (0 == i % pixels_in_a_row) {
+                ++lines;
+            }
+            if (lines % 2) {       // extract the UV value of odd rows
+                // copy uv channel
+                *nv12_uv_ptr++ = uyvy_content[i];
+                *nv12_uv_ptr++ = uyvy_content[i + 2];
+            }
+        }
+        free(uyvy_content);
+        fp = fopen(nv12_file_path, "wb");
+        if (!fp) {
+            free(nv12_content);
+            return false;
+        }
+        if (frame_size != fwrite(nv12_content, 1, frame_size, fp)) {
+            free(nv12_content);
+            fclose(fp);
+            return false;
+        }
+        free(nv12_content);
+        fclose(fp);
+        return true;
+    }
+    bool convert_uyvy_nv21(const char *uyvy_file_path, size_t width, size_t height, const char *nv21_file_path) {
+        if (!uyvy_file_path || !nv21_file_path) {
+            return false;
+        }
+        FILE *fp = fopen(uyvy_file_path, "rb");
+        if (!fp) {
+            return false;
+        }
+        fseek(fp, 0, SEEK_END);
+        size_t file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        size_t frame_size = width * height * 2;
+        if (file_size != frame_size) {
+            fclose(fp);
+            return false;
+        }
+        char *uyvy_content = (char *)malloc(sizeof(char) * file_size);
+        if (!uyvy_content) {
+            fclose(fp);
+            return false;
+        }
+        if (file_size != fread(uyvy_content, 1, file_size, fp)) {
+            free(uyvy_content);
+            fclose(fp);
+            return false;
+        }
+        fclose(fp);
+        // convert uyvy to nv12
+        frame_size = width * height * 3 / 2;
+        char *nv21_content = (char *)malloc(sizeof(char) * frame_size);
+        if (!nv21_content) {
+            free(uyvy_content);
+            return false;
+        }
+        size_t y_size = width * height;
+        size_t pixels_in_a_row = width * 2;
+        char *nv21_y_ptr = nv21_content;
+        char *nv21_uv_ptr = nv21_content + y_size;
+        int lines = 0;
+        for (int i = 0;i < file_size;i += 4) {
+            // copy y channel
+            *nv21_y_ptr++ = uyvy_content[i + 1];
+            *nv21_y_ptr++ = uyvy_content[i + 3];
+            if (0 == i % pixels_in_a_row) {
+                ++lines;
+            }
+            if (lines % 2) {       // extract the UV value of odd rows
+                // copy uv channel
+                *nv21_uv_ptr++ = uyvy_content[i + 2];
+                *nv21_uv_ptr++ = uyvy_content[i];
+            }
+        }
+        free(uyvy_content);
+        fp = fopen(nv21_file_path, "wb");
+        if (!fp) {
+            free(nv21_content);
+            return false;
+        }
+        if (frame_size != fwrite(nv21_content, 1, frame_size, fp)) {
+            free(nv21_content);
+            fclose(fp);
+            return false;
+        }
+        free(nv21_content);
+        fclose(fp);
+        return true;
     }
 };
 
