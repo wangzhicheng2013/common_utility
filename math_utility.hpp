@@ -117,6 +117,22 @@ public:
         }
         return one_count;
     }
+    double output_circular_constant() {
+        double base = 1;
+        double sum = 0;
+        double pre_sum = 0;
+        double sign = 1;
+        while (true) {
+            pre_sum = sum;
+            sum += sign / base;
+            if (fabs(pre_sum -  sum) <= 0.00000001) {
+                return 4 * sum;
+            }
+            sign *= (-1);
+            base += 2;
+        }
+        return 0;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
