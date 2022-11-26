@@ -502,6 +502,21 @@ public:
         }
         return count;
     }
+    int pattern_matching(const std::string &m_str, const std::string &p_str) {
+        int count = 0;
+        int pos = 0;
+        while (true) {
+            pos = m_str.find(p_str, pos);
+            if (pos != std::string::npos) {
+                ++count;
+                pos++;
+            }
+            else {
+                break;
+            }
+        }
+        return count;
+    }
 private:
     bool is_sep_char(const char *sep_chars, char ch) {
         for (int i = 0;sep_chars[i];i++) {
