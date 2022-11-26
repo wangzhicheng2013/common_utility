@@ -478,6 +478,30 @@ public:
         }
         return STRING_OPERATION_OK;
     }
+	int pattern_matching(char *m_str, char *p_str) {
+		int i = 0, j = 0;
+        int k = 0;
+        int count = 0;
+        while (m_str[i]) {
+            k = i;
+            j = 0;
+            while (p_str[j]) {
+                if (p_str[j] != m_str[i]) {
+                    break;
+                }
+                i++;
+                j++;
+            }
+            if (!p_str[j]) {
+                count++;
+                k = i;
+            }
+            else {
+                i++;
+            }
+        }
+        return count;
+    }
 private:
     bool is_sep_char(const char *sep_chars, char ch) {
         for (int i = 0;sep_chars[i];i++) {
