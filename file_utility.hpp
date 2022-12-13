@@ -9,6 +9,8 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <iterator>
+#include <algorithm>
 #include "string_utility.hpp"
 enum FILE_WRITE_MODE {
     OVER_WRITE,
@@ -234,6 +236,18 @@ public:
             memset(ppu8Plane_y + left + j * width, 0, w);
             memset(ppu8Plane_uv + left + j / 2 * width, 128, w);
         }
+    }
+    void fill_file(char fill_char, std::size_t size, const char *file_path) {
+        std::ofstream ofs(file_path);
+        if (!ofs) {
+            return;
+        }
+        if (!ofs.is_open()) {
+            ofs.close();
+            return;
+        }
+        std::fill_n(std::ostreambuf_iterator<char>(ofs), size, fill_char);
+        ofs.close();
     }
 private:
     // Correction of abscissa according to width
