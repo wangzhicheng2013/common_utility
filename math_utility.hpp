@@ -4,6 +4,7 @@
 #include <math.h>
 #include <limits.h>
 #include <time.h>
+#include <iostream>
 #include <vector>
 #include <set>
 #include <random>
@@ -132,6 +133,47 @@ public:
             base += 2;
         }
         return 0;
+    }
+    void full_arrange(int index, bool *hash_table, int *array, int n) {
+        static int count = 0;
+        if (index == n) {
+            std::cout << "----------" << ++count << "------------" << std::endl;
+            for (int i = 0;i < n;i++) {
+                std::cout << array[i] << " ";
+            }
+            std::cout << std::endl;
+            return;
+        }
+        for (int i = 0;i < n;i++) {
+            if (true == hash_table[i]) {
+                continue;
+            }
+            array[index] = i;
+            hash_table[i] = true;
+            full_arrange(index + 1, hash_table, array, n);
+            hash_table[i] = false;
+        }
+    }
+    void full_arrange(int n) {
+        const int max_n = 10;
+        if (n > max_n) {
+            std::cerr << "max n is:" << max_n << std::endl;
+            return;
+        }
+        bool *hash_table = new bool[n] { 0 };
+        if (!hash_table) {
+            std::cerr << "new failed!" << std::endl;
+            return;
+        }
+        int *array = new int[n] { 0 };
+        if (!array) {
+            free(hash_table);
+            std::cerr << "new failed!" << std::endl;
+            return;
+        }
+        full_arrange(0, hash_table, array, n);
+        free(hash_table);
+        free(array);
     }
 };
 
