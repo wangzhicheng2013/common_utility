@@ -1,7 +1,7 @@
 #include <iostream>
 #include "math_utility.hpp"
 int main() {
-	G_MATH_UTILITY.full_arrange(4);
+	std::cout << G_MATH_UTILITY.square_root(4.0) << std::endl;
     
     return 0;
 }

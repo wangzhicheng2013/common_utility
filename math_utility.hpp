@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 #include <limits.h>
 #include <time.h>
 #include <iostream>
 #include <vector>
 #include <set>
 #include <random>
+#include <cmath>
 #include <algorithm>
 #include "single_instance.hpp"
 class math_utility {
@@ -174,6 +176,18 @@ public:
         full_arrange(0, hash_table, array, n);
         free(hash_table);
         free(array);
+    }
+    double square_root(double a) {
+        if (a <= 0) {
+            return 0;
+        }
+        double x1 = 1.0;
+        double x2 = (x1 + a / x1) / 2;
+        while (fabs(x2 - x1) > 0.00001) {
+            x1 = x2;
+            x2 = (x1 + a / x1) / 2;
+        }
+        return x2;
     }
 };
 
