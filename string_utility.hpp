@@ -171,7 +171,7 @@ public:
             return false;
         }
         char cmd[64] = "";
-        snprintf(cmd, sizeof(cmd), "openssl rand -hex %u", len);
+        snprintf(cmd, sizeof(cmd), "openssl rand -hex %zd", len);
         FILE *fp = popen(cmd, "r");
         if (!fp) {
             return false;
@@ -516,6 +516,10 @@ public:
             }
         }
         return count;
+    }
+    size_t wchar_string_len(const char *str) {
+        wchar_t *wt = (wchar_t *)str;
+        return wcslen(wt);
     }
 private:
     bool is_sep_char(const char *sep_chars, char ch) {

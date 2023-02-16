@@ -1,7 +1,8 @@
 #include <iostream>
-#include "math_utility.hpp"
+#include "string_utility.hpp"
 int main() {
-	std::cout << G_MATH_UTILITY.square_root(4.0) << std::endl;
+    std::string str = "中国伟大复兴梦";
+	std::cout << G_STRING_UTILITY.wchar_string_len(str.c_str()) << std::endl;
     
     return 0;
 }
