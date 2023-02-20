@@ -521,6 +521,23 @@ public:
         wchar_t *wt = (wchar_t *)str;
         return wcslen(wt);
     }
+    
+    size_t get_string_characters(const char *str) {
+        static const char *tmp = "我";
+        static const size_t chinese_word_len = strlen(tmp);
+        size_t len_non_chinese = 0;
+        size_t len = 0;
+        for (int i = 0;str[i];i++) {
+            if ((str[i] <= 255) && (str[i] >= 0)) {
+                len_non_chinese++;
+            }
+            else {
+                ++len;
+            }
+        }
+        len /= chinese_word_len;
+        return len_non_chinese + len;
+    }
 private:
     bool is_sep_char(const char *sep_chars, char ch) {
         for (int i = 0;sep_chars[i];i++) {
