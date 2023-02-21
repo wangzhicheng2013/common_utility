@@ -33,6 +33,29 @@ public:
             small_heap_adjust(arr, 0, i);
         }
     }
+    T find_kth_largest(vector<T>&nums, int k) {
+        return find_the_largest(nums, 0, nums.size() - 1, k);
+    }
+    int quick_partition(vector<T>&nums, int start, int end) {
+        int i = start, j = end;
+        T tmp = nums[i];
+        while (i < j) {
+            while (i < j && nums[j] > tmp) {
+                j--;
+            }
+            if (i < j) {
+                nums[i++] = nums[j];
+            }
+            while (i < j && nums[i] < tmp) {
+                i++;
+            }
+            if (i < j) {
+                nums[j--] = nums[i];
+            }
+        }
+        nums[i] = tmp;
+        return i;
+    }
 private:
     void big_heap_adjust(T arr[], int i, int length) {
         int child = 0;
@@ -64,6 +87,19 @@ private:
                 break;
             }
             i = child;
+        }
+    }
+    T find_the_largest(vector<T>&nums, int start, int end, int k) {
+        int pos = quick_partition(nums, start, end);
+        int largest_index = end - pos + 1;
+        if (k == largest_index) {
+            return nums[pos];
+        }
+        else if (k < largest_index) {
+            return find_the_largest(nums, pos + 1, end, k);
+        }
+        else {
+            return find_the_largest(nums, start, pos - 1, k - (end - pos) - 1);
         }
     }
 };
