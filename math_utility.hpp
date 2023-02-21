@@ -189,6 +189,18 @@ public:
         }
         return x2;
     }
+    double positive_cubic_root(double a) {
+        if (a <= 0) {
+            return 0;
+        }
+        double x1 = a;
+        double x2 = 1.0 / 3 * (2 * x1 + a / (x1 * x1));
+        while (fabs(x1 - x2) > 0.00001) {
+            x1 = x2;
+            x2 = 1.0 / 3 * (2 * x1 + a / (x1 * x1));
+        }
+        return x2;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
