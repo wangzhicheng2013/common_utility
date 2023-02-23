@@ -201,6 +201,17 @@ public:
         }
         return x2;
     }
+    // a0x^n + a1x^(n-1) + ... + an
+    double sum_of_polynomials(double x, const std::vector<double>&coefficient_array, int n) {
+        assert((n + 1 == coefficient_array.size()) && (n > 0));
+        double sum_pre = coefficient_array[0];
+        double sum = 0;
+        for (int i = 1;i <= n;i++) {
+            sum = coefficient_array[i] + x * sum_pre;
+            sum_pre = sum;
+        }
+        return sum;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
