@@ -212,6 +212,21 @@ public:
         }
         return sum;
     }
+    // array such as [1;2,2,2,2,2]
+    double continued_fraction_calculation(const std::vector<int>&array) {
+        int p_2 = 0, p_1 = 1;
+        int q_2 = 1, q_1 = 0;
+        int p = 0, q = 0;
+        for (auto &a : array) {
+            p = a * p_1 + p_2;
+            q = a * q_1 + q_2;
+            p_2 = p_1;
+            p_1 = p;
+            q_2 = q_1;
+            q_1 = q;
+        }
+        return 1.0 * p / q;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
