@@ -72,6 +72,25 @@ public:
         }
         return -1;
     }
+    struct Time {
+        friend std::ostream & operator<<(std::ostream &out, Time &t) {
+            out << t.h << ":" << t.m << ":" << t.s << std::endl;
+            return out;
+        }
+        Time(int a, int b, int c) : h(a), m(b), s(c) {
+        }
+        int h;
+        int m;
+        int s;
+        
+    };
+    void compute_time(Time &t, int secs) {
+        t.m += (t.s + secs) / 60;
+        t.s = (t.s + secs) % 60;
+        t.h += t.m / 60;
+        t.m = t.m % 60;
+        t.h %= 24;
+    }
 };
 
 #define  G_TIME_UTILITY single_instance<time_utility>::instance()

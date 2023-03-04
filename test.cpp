@@ -1,8 +1,9 @@
 #include <iostream>
-#include "math_utility.hpp"
+#include "time_utility.hpp"
 int main() {
-    std::vector<double>coefficient_array = { 7, 2, 3 };
-    std::cout << G_MATH_UTILITY.sum_of_polynomials(1.0, coefficient_array, 2) << std::endl;
+   time_utility::Time t(1, 2, 3);
+   G_TIME_UTILITY.compute_time(t, 20);
+
 
     return 0;
 }
