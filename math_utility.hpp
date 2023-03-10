@@ -227,6 +227,63 @@ public:
         }
         return 1.0 * p / q;
     }
+    std::string get_significant_number(const std::string &str) {
+        if (str.empty()) {
+            return "";
+        }
+        auto pos = str.find('E');
+        if (pos == std::string::npos) {
+            pos = str.find('e');
+        }
+        if (pos == std::string::npos) {
+            return "";
+        }
+        std::string digital_str(str, 0, pos);
+        double digital = atof(digital_str.c_str());
+        if (digital >= 10 || digital <= -10) {
+            return "";
+        }
+        std::string index_str(str, pos + 1, str.size() - pos - 1);
+        if (index_str.empty()) {
+            return "";
+        }
+        int index = atoi(index_str.c_str());
+        if (0 == index) {
+            return digital_str;
+        }
+        if (!isdigit(digital_str[0])) {     // erase + or -
+            digital_str.erase(0, 1);
+        }
+        digital_str.erase(1, 1);            // erase .
+        std::string res;
+        if (digital < 0) {
+            res = '-';
+        }
+        if (index < 0) {
+            res += "0.";
+            res += std::string(-index - 1, '0');
+            res += digital_str;
+        }
+        else {
+            if (index + 1 < digital_str.size()) {
+                digital_str.insert(index + 1, ".");
+            }
+            res += digital_str;
+            if (index + 1 > digital_str.size()) {
+                res += std::string (index - (digital_str.size() - 1), '0');
+            }
+            int i = 1;
+            while (res[i] && res[i + 1]) {
+                if (('0' == res[i]) && (('0' == res[i + 1]) || isdigit(res[i + 1]))) {
+                    res.erase(i, 1);
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return res;
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
