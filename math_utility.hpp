@@ -284,6 +284,9 @@ public:
         }
         return res;
     }
+    int greatest_common_divisor(uint a, uint b) {
+        return (0 == b) ? a : greatest_common_divisor(b, a % b);
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
