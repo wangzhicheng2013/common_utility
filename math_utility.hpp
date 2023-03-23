@@ -287,6 +287,36 @@ public:
     int greatest_common_divisor(uint a, uint b) {
         return (0 == b) ? a : greatest_common_divisor(b, a % b);
     }
+    double sinX(double x) {
+        static const double precision = 0.00001;
+        double old_val = x;
+        double new_val = 0;
+
+        uint64_t last_denominator = 1;
+        uint64_t new_denominator = 0;
+
+        double last_numerator = x;
+        double new_numerator = 0;
+        double t = 0;
+        int n = 1;
+        int sign = -1;
+        while (true) {
+            new_denominator = last_denominator * (++n) * (++n);
+            last_denominator = new_denominator;
+
+            new_numerator = last_numerator * x * x;
+            last_numerator = new_numerator;
+
+            t = 1.0 * new_numerator / new_denominator;
+            new_val = old_val + t * sign;
+            if (fabs(t) <= precision) {
+                return new_val;
+            }
+            old_val = new_val;
+            sign *= -1;
+        }
+        assert(0);
+    }
 };
 
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
