@@ -1,7 +1,12 @@
 #pragma once
 #include <stdio.h>
-#include <string>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
 #include <sched.h>
+#include <sys/time.h>
+#include <string>
 #include <thread>
 #include "single_instance.hpp"
 class cpu_utility {
@@ -42,6 +47,56 @@ public:
 		} tmp { 1 } ;
 		return 1 == tmp.b;
 	}
+    bool get_top_info_by_process(const char *process_name_key, int field_index, char *info) {
+        char cmd[128] = { 0 };
+        snprintf(cmd, sizeof(cmd), "top -bn 1 | grep %s", process_name_key);
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            return false;
+        }
+        char buf[256] = { 0 };
+        fgets(buf, sizeof(buf) - 1, fp);
+        fclose(fp);
+        int index = 0;
+        int i = 0;
+        int len = 0;
+        const char *p = buf;
+        while (buf[i]) {
+            if (buf[i] != ' ' && (' ' == buf[i + 1])) {
+                index++;
+            }
+            if (field_index == index) {
+                len = buf + i - p + 1;
+                if (len < 64) {
+                    memcpy(info, p, len);
+                }
+                else {
+                    memcpy(info, p, 63);
+                }
+                return true;
+            }
+            if ((buf[i] != ' ') && (' ' == buf[i - 1])) {
+                p = buf + i;
+            }
+            i++;
+        }
+        len = buf + i - p;
+        if (len < 64) {
+            memcpy(info, p, len);
+        }
+        else {
+            memcpy(info, p, 63);
+        }
+        return true;
+    }
+    double get_cpu_usage(const char *process_name_key) {
+        char info[64] = { 0 };
+        static const int CPU_INDEX_IN_TOP = 9;
+        if (true == get_top_info_by_process(process_name_key, CPU_INDEX_IN_TOP, info)) {
+            return atof(info);
+        }
+        return 0;
+    }
 };
 
 #define  G_CPU_UTILITY single_instance<cpu_utility>::instance()
