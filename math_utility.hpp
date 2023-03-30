@@ -318,5 +318,40 @@ public:
         assert(0);
     }
 };
-
+struct eight_empresses {
+    void solution() {
+        back_trace(0);
+    }
+    inline int get_solution_num() const {
+        return solution_num;
+    }
+private:
+    bool check(int row, int col) {
+        for (int i = 0;i < row;i++) {
+            if ((queen[i] == col) || (abs(row - i) == abs(col - queen[i]))) {
+                return false;
+            }
+        }
+        return true;
+    }
+    void back_trace(int row) {
+        if (row == EIGHT) {
+            for (int i = 0;i < EIGHT;i++) {
+                std::cout << "(" << i << "," << queen[i] << ")" << std::endl;
+            }
+            ++solution_num;
+            return;
+        }
+        for (int col = 0;col < EIGHT;col++) {
+            if (check(row, col)) {
+                queen[row] = col;
+                back_trace(row + 1);
+            }
+        }
+    }
+private:
+    static const int EIGHT = 8;
+    int queen[EIGHT] = { 0 };
+    int solution_num = 0;
+};
 #define G_MATH_UTILITY single_instance<math_utility>::instance()
