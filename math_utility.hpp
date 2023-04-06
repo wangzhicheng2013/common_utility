@@ -317,6 +317,24 @@ public:
         }
         assert(0);
     }
+    int archimedes_property_of_real_numbers(double a, double b) {
+        if (a <= 0 || b <= 0) {
+            return 0;
+        }
+        static const double DIFF = 0.000001;
+        int n = 1;
+        double start = a, end = b;
+        if (a > b) {
+            start = b;
+            end = a;
+        }
+        double t = start;
+        while (end - start > DIFF) {
+            n++;
+            start += t;
+        }
+        return n;
+    }
 };
 struct eight_empresses {
     void solution() {
