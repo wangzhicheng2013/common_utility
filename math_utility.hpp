@@ -9,6 +9,7 @@
 #include <vector>
 #include <set>
 #include <random>
+#include <functional>
 #include <cmath>
 #include <algorithm>
 #include "single_instance.hpp"
@@ -334,6 +335,23 @@ public:
             start += t;
         }
         return n;
+    }
+    double find_the_root_of_a_monotonic_function(std::function<double(double)>original_function, 
+                                                 std::function<double(double)>derivative_function) {
+        double x0 = 0, f = 0, fd = 0, h = 0;
+        double x = 1.5;
+        static const double DIFF = 1e-5;
+        do {
+            x0 = x;
+            f = original_function(x0);
+            fd = derivative_function(x0);
+            if (fabs(fd - 0) < 0.00001) {
+                return x;
+            }
+            h = f / fd;
+            x = x0 - h;
+        } while (fabs(x - x0) >= DIFF);
+        return x;
     }
 };
 struct eight_empresses {
