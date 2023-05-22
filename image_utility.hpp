@@ -15,7 +15,14 @@ enum IMAGE_FORMAT {
     ASVL_PAF_NV12 = 0x801,
     /*8 bit Y plane followed by 8 bit 2x2 subsampled VU planes*/
     ASVL_PAF_NV21 = 0x802,
+    ASVL_PAF_UYVY = 0x503,
 };
+typedef struct __tag_rect {
+	int left;
+	int top;
+	int right;
+	int bottom;
+} MRECT, *PMRECT;
 class image_utility {
 public:
     // Correction of abscissa according to width
@@ -370,6 +377,105 @@ public:
         free(nv21_content);
         fclose(fp);
         return true;
+    }
+    void nv12_draw_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
+                    /* Components of YUV's storage address index */
+                    int y_index = j * pic_w + k;
+                    int u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + pic_w * pic_h;
+                    int v_index = u_index + 1;
+                    /* set up YUV's conponents value of rectangle border */
+                    pic[y_index] =  Y;
+                    pic[u_index] =  U;
+                    pic[v_index] =  V;
+                }
+            }
+        }
+    }
+    void nv21_draw_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
+                    /* Components of YUV's storage address index */
+                    int y_index = j * pic_w + k;
+                    int v_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + pic_w * pic_h;
+                    int u_index = v_index + 1;
+                    /* set up YUV's conponents value of rectangle border */
+                    pic[y_index] =  Y;
+                    pic[u_index] =  U;
+                    pic[v_index] =  V;
+                }
+            }
+        }
+    }
+    void uyvy_draw_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
+                    /* Components of YUV's storage address index */
+                    int n = j * pic_w + k;
+                    int y_index = 2 * n - 1;
+                    pic[y_index] = Y;
+                    if (1 == y_index % 4) {
+                        pic[y_index - 1] = U;
+                        pic[y_index + 1] = V;
+                    }
+                }
+            }
+        }
     }
 };
 
