@@ -396,13 +396,20 @@ public:
         int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
         /* Locking the scope of rectangle border range */
         int j = 0, k = 0;
+        int size = pic_w * pic_h;
+        int size1 = pic_w * 2;
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
         for (j = rect_y;j < rect_y + rect_h;j++) {
             for (k = rect_x;k < rect_x + rect_w;k++) {
                 if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
                     /* Components of YUV's storage address index */
-                    int y_index = j * pic_w + k;
-                    int u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + pic_w * pic_h;
-                    int v_index = u_index + 1;
+                    y_index = j * pic_w + k;
+                    //u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + size;
+                    u_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                    //printf("y:%d, u:%d, u1:%d\n", y_index, u_index, u_index1);
+                    v_index = u_index + 1;
                     /* set up YUV's conponents value of rectangle border */
                     pic[y_index] =  Y;
                     pic[u_index] =  U;
@@ -429,13 +436,19 @@ public:
         int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
         /* Locking the scope of rectangle border range */
         int j = 0, k = 0;
+        int size = pic_w * pic_h;
+        int size1 = pic_w * 2;
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
         for (j = rect_y;j < rect_y + rect_h;j++) {
             for (k = rect_x;k < rect_x + rect_w;k++) {
                 if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
                     /* Components of YUV's storage address index */
-                    int y_index = j * pic_w + k;
-                    int v_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + pic_w * pic_h;
-                    int u_index = v_index + 1;
+                    y_index = j * pic_w + k;
+                    //u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + size;
+                    v_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                    u_index = v_index + 1;
                     /* set up YUV's conponents value of rectangle border */
                     pic[y_index] =  Y;
                     pic[u_index] =  U;
@@ -462,12 +475,14 @@ public:
         int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
         /* Locking the scope of rectangle border range */
         int j = 0, k = 0;
+        int n = 0;
+        int y_index = 0;
         for (j = rect_y;j < rect_y + rect_h;j++) {
             for (k = rect_x;k < rect_x + rect_w;k++) {
                 if (k < (rect_x + border) || k > (rect_x + rect_w - border) || j < (rect_y + border) || j > (rect_y + rect_h - border)) {
                     /* Components of YUV's storage address index */
-                    int n = j * pic_w + k;
-                    int y_index = 2 * n - 1;
+                    n = j * pic_w + k;
+                    y_index = (n << 1) - 1;
                     pic[y_index] = Y;
                     if (1 == y_index % 4) {
                         pic[y_index - 1] = U;
@@ -477,6 +492,193 @@ public:
             }
         }
     }
+    void nv12_fill_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        int size = pic_w * pic_h;
+        int size1 = pic_w * 2;
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                /* Components of YUV's storage address index */
+                y_index = j * pic_w + k;
+                //u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + size;
+                u_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                //printf("y:%d, u:%d, u1:%d\n", y_index, u_index, u_index1);
+                v_index = u_index + 1;
+                /* set up YUV's conponents value of rectangle border */
+                pic[y_index] =  Y;
+                pic[u_index] =  U;
+                pic[v_index] =  V;
+            }
+        }
+    }
+    void nv21_fill_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        int size = pic_w * pic_h;
+        int size1 = pic_w * 2;
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                /* Components of YUV's storage address index */
+                y_index = j * pic_w + k;
+                //u_index = (y_index / 2 - pic_w / 2 * ((j + 1) / 2)) * 2 + size;
+                v_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                u_index = v_index + 1;
+                /* set up YUV's conponents value of rectangle border */
+                pic[y_index] =  Y;
+                pic[u_index] =  U;
+                pic[v_index] =  V;
+            }
+        }
+    }
+    void uyvy_fill_rectangle(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int R,
+                    int G,
+                    int B) {
+        /* Set up the rectangle border size */
+        static const int border = 5;
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        /* Locking the scope of rectangle border range */
+        int j = 0, k = 0;
+        int n = 0;
+        int y_index = 0;
+        for (j = rect_y;j < rect_y + rect_h;j++) {
+            for (k = rect_x;k < rect_x + rect_w;k++) {
+                /* Components of YUV's storage address index */
+                n = j * pic_w + k;
+                y_index = (n << 1) - 1;
+                pic[y_index] = Y;
+                if (1 == y_index % 4) {
+                    pic[y_index - 1] = U;
+                    pic[y_index + 1] = V;
+                }
+            }
+        }
+    }
+    void nv12_to_rgb(const char *nv12, int width, int height, char *rgb) {
+        if (!nv12 || !rgb) {
+            return;
+        }
+        int r = 0, g = 0, b = 0;
+        int y = 0, u = 0, v = 0;
+        int size = width * height;
+        const char *y_ptr = nv12;
+        const char *uv_ptr = nv12 + size;
+        int pos = 0;
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                y = y_ptr[i * width + j];
+                pos = i / 2 * width + j / 2 * 2;
+                u = uv_ptr[pos];
+                v = uv_ptr[pos + 1];
+
+                r = y + 1.4075 * (v - 128);  //r
+			    g = y - 0.344 * (u - 128) - 0.714 * (v - 128); //g
+			    b = y + 1.770 * (u - 128); //b
+
+			    if (r > 255) {
+                    r = 255;
+                }
+			    if (g > 255) {
+                    g = 255;
+                }
+                if (b > 255) {
+                    b = 255;
+                }
+                if (r < 0) {
+                    r = 0;
+                }
+                if (g < 0) {
+                    g = 0;
+                }
+                if (b < 0) {
+                    b = 0;
+                }
+                rgb[(i * width + j) * 3 + 0] = r;
+                rgb[(i * width + j) * 3 + 1] = g;
+                rgb[(i * width + j) * 3 + 2] = b;
+            }
+        }
+    }
+void NV12ToRGB(unsigned char *nv12, unsigned char *rgb, int width, int height) {
+    int size = width * height;
+    int w, h, x, y, u, v, yIndex, uvIndex, rIndex, gIndex, bIndex;
+    int y1192, r, g, b, uv448, uv_128;
+    for (h = 0; h < height; h++) {
+        for (w = 0; w < width; w++) {
+            yIndex = h * width + w;
+            uvIndex = (h / 2) * width + (w & (-2)) + size;
+            u = nv12[uvIndex];
+            v = nv12[uvIndex + 1];
+            // YUV to RGB
+            y1192 = 1192 * (nv12[yIndex] - 16);
+            uv448 = 448 * (u - 128);
+            uv_128 = 128 * (v - 128);
+            r = (y1192 + uv448) >> 10;
+            g = (y1192 - uv_128 - uv448) >> 10;
+            b = (y1192 + uv_128) >> 10;
+            // RGB clipping
+            if (r < 0) r = 0;
+            if (g < 0) g = 0;
+            if (b < 0) b = 0;
+            if (r > 255) r = 255;
+            if (g > 255) g = 255;
+            if (b > 255) b = 255;
+            // Save RGB values
+            rIndex = yIndex * 3;
+            gIndex = rIndex + 1;
+            bIndex = gIndex + 1;
+            rgb[rIndex] = r;
+            rgb[gIndex] = g;
+            rgb[bIndex] = b;
+        }
+    }
+}
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
