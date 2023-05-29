@@ -9,6 +9,11 @@
 #include <string>
 #include <thread>
 #include "single_instance.hpp"
+enum MB_ALIGN {
+    MB8 = 8u,
+    MB16 = 16u,
+    MB32 = 32u,
+};
 class cpu_utility {
 public:
     inline bool bind_cpu(unsigned cpu_no) {
@@ -96,6 +101,9 @@ public:
             return atof(info);
         }
         return 0;
+    }
+    inline void byte_alignment(int &num, MB_ALIGN mb) {
+        num = ((num + mb - 1) / mb) * mb;
     }
 };
 

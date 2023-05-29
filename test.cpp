@@ -1,6 +1,7 @@
 #include <iostream>
 #include "image_utility.hpp"
-int main() {
+#include "cpu_utility.hpp"
+void test_pic() {
     const int pic_w  = 1920;
     const int pic_h  = 1536;
 
@@ -44,5 +45,15 @@ int main() {
     free(buf);
     free(rgb);
     //free(rgb);
+    return 0;
+}
+int main() {
+    int num = 15;
+    G_CPU_UTILITY.byte_alignment(num, MB16);
+    std::cout << num << std::endl;
+    
+    G_CPU_UTILITY.byte_alignment(num, MB8);
+    std::cout << num << std::endl;
+
     return 0;
 }
