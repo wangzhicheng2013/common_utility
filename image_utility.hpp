@@ -638,6 +638,21 @@ public:
             }
         }
     }
+	void get_fixed_size(int& display_width, 
+                    int& display_height,
+                    int source_width,
+                    int source_height,
+                    int screen_width,
+                    int screen_height) {
+		if ((screen_width * source_height) > (screen_height * source_width)) {
+			display_width = screen_height * source_width / source_height;
+			display_height = screen_height;
+		}
+		else {
+			display_width = screen_width;
+			display_height = screen_width * source_height / source_width;
+		}
+	}
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
