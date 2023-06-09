@@ -653,6 +653,161 @@ public:
 			display_height = screen_width * source_height / source_width;
 		}
 	}
+    void nv12_mosaic(unsigned char* nv12_data,
+                     int width,
+                     int height,
+                     int block_size) {
+        int x = 0, y = 0, i = 0, j = 0;
+        int y_size = width * height;
+        int uv_size = y_size / 2;
+        int y_sum = 0, u_sum = 0, v_sum = 0;
+        int count = 0;
+        int y_index = 0;
+        int uv_index = 0;
+        int y_avg = 0, u_avg = 0, v_avg = 0;
+        for (y = 0;y < height;y += block_size) {
+            for (x = 0;x < width;x += block_size) {
+                y_sum = 0, u_sum = 0, v_sum = 0;
+                count = 0;
+                for (j = y;j < y + block_size && j < height;j++) {
+                    for (i = x;i < x + block_size && i < width;i++) {
+                        y_index = j * width + i;
+                        uv_index = (j / 2) * width + (i / 2) * 2;
+                        y_sum += nv12_data[y_index];
+                        if ((0 == i % 2) && (0 == j % 2)) {
+                            u_sum += nv12_data[uv_size + uv_index];
+                            v_sum += nv12_data[uv_size + uv_index + 1];
+                        }
+                        count++;
+                    }
+                }
+                y_avg = y_sum / count;
+                u_avg = u_sum / (count / 4);        // 4Y -- 1UV
+                v_avg = v_sum / (count / 4);
+                for (j = y;j < y + block_size && j < height;j++) {
+                    for (i = x;i < x + block_size && i < width;i++) {
+                        y_index = j * width + i;
+                        uv_index = (j / 2) * width + (i / 2) * 2;
+                        nv12_data[y_index] = y_avg;
+                        if (0 == (i % 2) && (0 == j % 2)) {
+                            nv12_data[uv_size + uv_index] = u_avg;
+                            nv12_data[uv_size + uv_index + 1] = v_avg;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void nv12_mosaic(unsigned char* data,
+                     int width,
+                     int height,
+                     int x,
+                     int y,
+                     int w,
+                     int h,
+                     int block_size) {
+        int uv_width = width / 2;
+        int uv_height = height / 2;
+        int uv_x = x / 2;
+        int uv_y = y / 2;
+        int uv_w = w / 2;
+        int uv_h = h / 2;
+        int i = 0, j = 0;
+        int sum = 0, count = 0;
+        int ii = 0, jj = 0;
+        int avg = 0;
+        int sum_u = 0, sum_v = 0;
+        for (j = y;j < y + h;j += block_size) {
+            for (i = x;i < x + w;i += block_size) {
+                sum = 0;
+                count = 0;
+                for (jj = j;jj < j + block_size && jj < y + h;jj++) {
+                    for (ii = i;ii < i + block_size && ii < x + w;ii++) {
+                        sum += data[jj * width + ii];
+                        count++;
+                    }
+                }
+                avg = sum / count;
+                for (jj = j;jj < j + block_size && jj < y + h;jj++) {
+                    for (ii = i;ii < i + block_size && ii < x + w;ii++) {
+                        data[jj * width + ii] = avg;
+                    }
+                }
+            }
+        }
+        for (j = uv_y;j < uv_y + uv_h;j += block_size) {
+            for (i = uv_x;i < uv_x + uv_w;i += block_size) {
+                sum_u = 0;
+                sum_v = 0;
+                count = 0;
+                for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
+                    for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
+                        sum_u += data[width * height + jj * uv_width + ii];
+                        sum_v += data[width * height + uv_width * uv_height + jj * uv_width + ii];
+                        count++;
+                    }
+                }
+                avg_u = sum_u / count;
+                avg_v = sum_v / count;
+                for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
+                    for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
+                        data[width * height + jj * uv_width + ii] = avg_u;
+                        data[width * height + uv_width * uv_height + jj * uv_width + ii] = avg_v;
+                    }
+                }
+            }
+        }
+    }
+    void nv12_mosaic(char *pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int rect_x, 
+                    int rect_y, 
+                    int rect_w,
+                    int rect_h,
+                    int block_size) {
+        /* Locking the scope of rectangle border range */
+        int size = pic_w * pic_h;
+        int size1 = pic_w * 2;
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
+        int x = 0, y = 0, i = 0, j = 0;
+        int y_sum = 0, u_sum = 0, v_sum = 0;
+        int count = 0;
+        int y_avg = 0, u_avg = 0, v_avg = 0;
+        int w = rect_x + rect_w, h = rect_y + rect_h;
+        for (y = rect_y;y < h;y += block_size) {
+            for (x = rect_x;x < w;x += block_size) {
+                y_sum = 0, u_sum = 0, v_sum = 0;
+                count = 0;
+                for (j = y;j < y + block_size && j < h;j++) {
+                    for (i = x;i < x + block_size && i < w;i++) {
+                        y_index = j * pic_w + i;
+                        u_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                        v_index = u_index + 1;
+                        y_sum += pic[y_index];
+                        u_sum += pic[u_index];
+                        v_sum += pic[v_index];
+                        count++;
+                    }
+                }
+                y_avg = y_sum / count;
+                u_avg = u_sum / (count / 4);        // 4Y -- 1UV
+                v_avg = v_sum / (count / 4);
+                for (j = y;j < y + block_size && j < rect_y + rect_h;j++) {
+                    for (i = x;i < x + block_size && i < rect_x + rect_w;i++) {
+                        y_index = j * pic_w + i;
+                        u_index = (y_index / size1) * pic_w + (((y_index % pic_w) / 2) << 1) + size;
+                        v_index = u_index + 1;
+                        pic[y_index] = y_avg;
+                        pic[u_index] = u_avg;
+                        pic[v_index] = v_avg;
+                    }
+                }    
+            }
+        }
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()

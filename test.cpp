@@ -47,13 +47,42 @@ void test_pic() {
     //free(rgb);
     return 0;
 }
+void test_mosaic() {
+    const int pic_w  = 1920;
+    const int pic_h  = 1536;
+
+    /* Set up test data's path and output data's path */
+    const char *inputPathname  = "./NV12_1_1920x1536.NV12";
+    const char *outputPathname = "./NV12_1_1920x1536.NV12";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return -1;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        return -1;
+    }
+    size_t size = pic_w * pic_h;
+
+    /* Allocate memory for uyvy */
+    unsigned char *buf = (unsigned char *)malloc(size * 3 / 2 * sizeof(unsigned char));
+
+    /* Read file data to buffer */
+    fread(buf, 1, size, fin);
+    G_IMAGE_UTILITY.nv12_mosaic(buf, pic_w, pic_h, 10, 10, 100);
+    /* Write data of buf to fout */
+    fwrite(buf, size, 1, fout);
+
+    /* Close the file */
+    fclose(fin);
+    fclose(fout);
+
+    /* Free the allocation memory */
+    free(buf);
+    return 0;    
+}
 int main() {
-    int num = 15;
-    G_CPU_UTILITY.byte_alignment(num, MB16);
-    std::cout << num << std::endl;
-    
-    G_CPU_UTILITY.byte_alignment(num, MB8);
-    std::cout << num << std::endl;
+    test_mosaic();
 
     return 0;
 }
