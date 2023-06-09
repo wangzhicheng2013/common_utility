@@ -715,8 +715,10 @@ public:
         int i = 0, j = 0;
         int sum = 0, count = 0;
         int ii = 0, jj = 0;
-        int avg = 0;
+        int avg = 0, avg_u = 0, avg_v = 0;
         int sum_u = 0, sum_v = 0;
+        int size = width * height;
+        int uv_size = uv_width * uv_height;
         for (j = y;j < y + h;j += block_size) {
             for (i = x;i < x + w;i += block_size) {
                 sum = 0;
@@ -742,8 +744,8 @@ public:
                 count = 0;
                 for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
                     for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
-                        sum_u += data[width * height + jj * uv_width + ii];
-                        sum_v += data[width * height + uv_width * uv_height + jj * uv_width + ii];
+                        sum_u += data[size + jj * uv_width + ii];
+                        sum_v += data[size + uv_size + jj * uv_width + ii];
                         count++;
                     }
                 }
@@ -751,8 +753,8 @@ public:
                 avg_v = sum_v / count;
                 for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
                     for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
-                        data[width * height + jj * uv_width + ii] = avg_u;
-                        data[width * height + uv_width * uv_height + jj * uv_width + ii] = avg_v;
+                        data[size + jj * uv_width + ii] = avg_u;
+                        data[size + uv_size  + jj * uv_width + ii] = avg_v;
                     }
                 }
             }
