@@ -793,6 +793,58 @@ public:
             }
         }
     }
+    void uyvy_mosaic(unsigned char* data,
+                     int width,
+                     int height,
+                     int x,
+                     int y,
+                     int w,
+                     int h,
+                     int block_size) {
+        int i = 0, j = 0, ii = 0, jj = 0;
+        int u = 0, y1 = 0, v = 0, y2 = 0;
+        int u_sum = 0, y1_sum = 0, v_sum = 0, y2_sum = 0;
+        int count = block_size * block_size / 2;
+        unsigned char *p = nullptr;
+        if (block_size <= 0 || block_size >= w || block_size >= h) {
+            return;
+        }
+        for (j = y;j < y + h;j += block_size) {
+            for (i = x;i < x + w;i += block_size) {
+                u_sum = y1_sum = v_sum = y2_sum = 0;
+                for (jj = j;jj < j + block_size;jj++) {
+                    if (jj >= j + h) continue;
+                    for (ii = i;ii < i + block_size;ii += 2) {
+                        if (ii >= i + w) continue;
+                        p = data + jj * width * 2 + ii * 2;
+                        u = *p;
+                        y1 = *(p + 1);
+                        v = *(p + 2);
+                        y2 = *(p + 3);
+                        u_sum += u;
+                        y1_sum += y1;
+                        v_sum += v;
+                        y2_sum += y2;
+                    }
+                }
+                u = u_sum / count;
+                y1 = y1_sum / count;
+                v = v_sum / count;
+                y2 = y2_sum / count;
+                for (jj = j;jj < j + block_size;jj++) {
+                    if (jj >= j + h) continue;
+                    for (ii = i;ii < i + block_size;ii += 2) {
+                        if (ii >= i + w) continue;
+                        p = data + jj * width * 2 + ii * 2;
+                        *p = u;
+                        *(p + 1) = y1;
+                        *(p + 2) = v;
+                        *(p + 3) = y2;
+                    }
+                }
+            }
+        }
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
