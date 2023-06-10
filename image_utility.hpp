@@ -698,7 +698,7 @@ public:
             }
         }
     }
-    void nv12_mosaic(unsigned char* data,
+    void nv12_nv21_mosaic(unsigned char* data,
                      int width,
                      int height,
                      int x,
@@ -706,19 +706,13 @@ public:
                      int w,
                      int h,
                      int block_size) {
-        int uv_width = width / 2;
-        int uv_height = height / 2;
-        int uv_x = x / 2;
-        int uv_y = y / 2;
-        int uv_w = w / 2;
-        int uv_h = h / 2;
         int i = 0, j = 0;
         int sum = 0, count = 0;
         int ii = 0, jj = 0;
-        int avg = 0, avg_u = 0, avg_v = 0;
-        int sum_u = 0, sum_v = 0;
-        int size = width * height;
-        int uv_size = uv_width * uv_height;
+        int avg = 0;
+        if (block_size <= 0 || block_size >= w || block_size >= h) {
+            return;
+        }
         for (j = y;j < y + h;j += block_size) {
             for (i = x;i < x + w;i += block_size) {
                 sum = 0;
@@ -730,32 +724,21 @@ public:
                     }
                 }
                 avg = sum / count;
-                for (jj = j;jj < j + block_size && jj < y + h;jj++) {
-                    for (ii = i;ii < i + block_size && ii < x + w;ii++) {
-                        data[jj * width + ii] = avg;
-                    }
+                if (avg <= 0) {
+                    return;
                 }
-            }
-        }
-        for (j = uv_y;j < uv_y + uv_h;j += block_size) {
-            for (i = uv_x;i < uv_x + uv_w;i += block_size) {
-                sum_u = 0;
-                sum_v = 0;
                 count = 0;
-                for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
-                    for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
-                        sum_u += data[size + jj * uv_width + ii];
-                        sum_v += data[size + uv_size + jj * uv_width + ii];
-                        count++;
+                for (jj = j;jj < j + block_size && jj < y + h;jj++) {
+                    if (i + block_size >= x + w) {
+                        continue;
                     }
-                }
-                avg_u = sum_u / count;
-                avg_v = sum_v / count;
-                for (jj = j;jj < j + block_size && jj < uv_y + uv_h;jj++) {
-                    for (ii = i;ii < i + block_size && ii < uv_x + uv_w;ii++) {
-                        data[size + jj * uv_width + ii] = avg_u;
-                        data[size + uv_size  + jj * uv_width + ii] = avg_v;
+                    if (count % 2) {
+                        memset(data + jj * width + i, avg + 1, block_size);
                     }
+                    else {
+                        memset(data + jj * width + i, avg - 1, block_size);
+                    }
+                    ++count;
                 }
             }
         }
