@@ -845,6 +845,73 @@ public:
             }
         }
     }
+    bool convert_yuyv_nv12(const char *yuyv_file_path, size_t width, size_t height, const char *nv12_file_path) {
+        if (!yuyv_file_path || !nv12_file_path) {
+            return false;
+        }
+        FILE *fp = fopen(yuyv_file_path, "rb");
+        if (!fp) {
+            return false;
+        }
+        fseek(fp, 0, SEEK_END);
+        size_t file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        size_t frame_size = width * height * 2;
+        if (file_size != frame_size) {
+            fclose(fp);
+            return false;
+        }
+        char *yuyv_content = (char *)malloc(sizeof(char) * file_size);
+        if (!yuyv_content) {
+            fclose(fp);
+            return false;
+        }
+        if (file_size != fread(yuyv_content, 1, file_size, fp)) {
+            free(yuyv_content);
+            fclose(fp);
+            return false;
+        }
+        fclose(fp);
+        // convert uyvy to nv12
+        frame_size = width * height * 3 / 2;
+        char *nv12_content = (char *)malloc(sizeof(char) * frame_size);
+        if (!nv12_content) {
+            free(yuyv_content);
+            return false;
+        }
+        size_t y_size = width * height;
+        size_t pixels_in_a_row = width * 2;
+        char *nv12_y_ptr = nv12_content;
+        char *nv12_uv_ptr = nv12_content + y_size;
+        int lines = 0;
+        for (int i = 0;i < file_size;i += 4) {
+            // copy y channel
+            *nv12_y_ptr++ = yuyv_content[i];
+            *nv12_y_ptr++ = yuyv_content[i + 2];
+            if (0 == i % pixels_in_a_row) {
+                ++lines;
+            }
+            if (lines % 2) {       // extract the UV value of odd rows
+                // copy uv channel
+                *nv12_uv_ptr++ = yuyv_content[i + 1];
+                *nv12_uv_ptr++ = yuyv_content[i + 3];
+            }
+        }
+        free(yuyv_content);
+        fp = fopen(nv12_file_path, "wb");
+        if (!fp) {
+            free(nv12_content);
+            return false;
+        }
+        if (frame_size != fwrite(nv12_content, 1, frame_size, fp)) {
+            free(nv12_content);
+            fclose(fp);
+            return false;
+        }
+        free(nv12_content);
+        fclose(fp);
+        return true;
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()

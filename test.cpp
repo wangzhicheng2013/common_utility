@@ -1,7 +1,7 @@
 #include <iostream>
 #include "image_utility.hpp"
 #include "cpu_utility.hpp"
-void test_pic() {
+int test_pic() {
     const int pic_w  = 1920;
     const int pic_h  = 1536;
 
@@ -47,7 +47,7 @@ void test_pic() {
     //free(rgb);
     return 0;
 }
-void test_mosaic() {
+int test_mosaic() {
     const int pic_w  = 1920;
     const int pic_h  = 1536;
 
@@ -69,7 +69,7 @@ void test_mosaic() {
 
     /* Read file data to buffer */
     fread(buf, 1, size, fin);
-    G_IMAGE_UTILITY.nv12_mosaic(buf, pic_w, pic_h, 10, 10, 100);
+    G_IMAGE_UTILITY.nv12_nv21_mosaic(buf, pic_w, pic_h, 0, 0, 100, 100, 10);
     /* Write data of buf to fout */
     fwrite(buf, size, 1, fout);
 
@@ -81,8 +81,11 @@ void test_mosaic() {
     free(buf);
     return 0;    
 }
+void test_yuyv_to_nv12() {
+    G_IMAGE_UTILITY.convert_yuyv_nv12("20000101_013825_946661905197_1920x1080_1920x1080.YUYV", 1920, 1080, "20000101_013825_946661905197_1920x1080_1920x1080.nv12");
+}
 int main() {
-    test_mosaic();
-
+    //test_mosaic();
+    test_yuyv_to_nv12();
     return 0;
 }
