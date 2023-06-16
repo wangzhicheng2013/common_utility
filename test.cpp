@@ -1,6 +1,7 @@
 #include <iostream>
 #include "image_utility.hpp"
 #include "cpu_utility.hpp"
+#include "math_utility.hpp"
 int test_pic() {
     const int pic_w  = 1920;
     const int pic_h  = 1536;
@@ -84,8 +85,14 @@ int test_mosaic() {
 void test_yuyv_to_nv12() {
     G_IMAGE_UTILITY.convert_yuyv_nv12("20000101_013825_946661905197_1920x1080_1920x1080.YUYV", 1920, 1080, "20000101_013825_946661905197_1920x1080_1920x1080.nv12");
 }
+void test_combinations() {
+    std::cout << G_MATH_UTILITY.get_combinations(10, 2) << std::endl;
+}
+void test_get_sum_of_binomial() {
+    std::cout << G_MATH_UTILITY.get_sum_of_binomials(1, 2, 3) << std::endl;
+}
 int main() {
-    //test_mosaic();
-    test_yuyv_to_nv12();
+    test_get_sum_of_binomial();
+
     return 0;
 }

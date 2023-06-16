@@ -353,6 +353,36 @@ public:
         } while (fabs(x - x0) >= DIFF);
         return x;
     }
+    uint64_t get_combinations(uint n, uint k) {
+        return combinations(n, k);
+    }
+    long get_sum_of_binomials(int a, int b, uint n) {
+        std::vector<long>an, bn, cn;
+        an.resize(n + 1);
+        bn.resize(n + 1);
+        cn.resize(n + 1);
+        an[n] = 1;
+        bn[0] = 1;
+        cn[0] = 1;
+        long sum = 0;
+        int i = 0;
+        for (i = 1;i <= n;i++) {
+            bn[i] = b * bn[i - 1];
+            an[n - i] = a * an[n - i + 1];
+            cn[i] = cn[i - 1] * (n - i + 1) / i;
+        }
+        for (i = 0;i <= n;i++) {
+            sum += cn[i] * an[i] * bn[i];
+        }
+        return sum;
+    }
+private:
+    uint64_t combinations(uint n, uint k) {
+        if ((0 == k) || (k == n) || (0 == n)) {
+            return 1;
+        }
+        return combinations(n - 1, k - 1) + combinations(n - 1, k);
+    } 
 };
 struct eight_empresses {
     void solution() {
