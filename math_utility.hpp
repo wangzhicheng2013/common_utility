@@ -376,6 +376,20 @@ public:
         }
         return sum;
     }
+    double get_cube(double a) {
+        double x0 = 1, x1 = 0;
+        const double PRECISION = 0.0001;
+        const auto original_fun = [&a] (double x) { return x * x * x - a; };
+        const auto derivative_fun = [] (double x) { return x * x * 3; };
+        while (true) {
+            x1 = x0 - original_fun(x0) / derivative_fun(x0);
+            if ((fabs(x1 - x0) <= PRECISION) || fabs(original_fun(x1)) <= PRECISION) {
+                break;
+            }
+            x0 = x1;
+        }
+        return x1;
+    }
 private:
     uint64_t combinations(uint n, uint k) {
         if ((0 == k) || (k == n) || (0 == n)) {

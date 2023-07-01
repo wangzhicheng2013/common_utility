@@ -91,8 +91,13 @@ void test_combinations() {
 void test_get_sum_of_binomial() {
     std::cout << G_MATH_UTILITY.get_sum_of_binomials(1, 2, 3) << std::endl;
 }
+void test_get_cube() {
+    std::cout << G_MATH_UTILITY.get_cube(18) << std::endl;
+    std::cout << pow(18, 1.0 / 3) << std::endl;
+}
 int main() {
-    test_get_sum_of_binomial();
-
+    //test_get_sum_of_binomial();
+    test_get_cube();
+    
     return 0;
 }
