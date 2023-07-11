@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <error.h>
 #include <sys/time.h>
 #include <string>
 #include <vector>
@@ -90,6 +91,14 @@ public:
         t.h += t.m / 60;
         t.m = t.m % 60;
         t.h %= 24;
+    }
+	void blocking_until_timeout(unsigned int micro_seconds) {
+		struct timeval tv = {0};
+		tv.tv_usec = micro_seconds;
+		int err = 0;
+		do {
+			err = select(0, nullptr, nullptr, nullptr, &tv);
+		} while (err < 0 && EINTR == errno);
     }
 };
 

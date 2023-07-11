@@ -2,6 +2,7 @@
 #include "image_utility.hpp"
 #include "cpu_utility.hpp"
 #include "math_utility.hpp"
+#include "time_utility.hpp"
 int test_pic() {
     const int pic_w  = 1920;
     const int pic_h  = 1536;
@@ -95,9 +96,21 @@ void test_get_cube() {
     std::cout << G_MATH_UTILITY.get_cube(18) << std::endl;
     std::cout << pow(18, 1.0 / 3) << std::endl;
 }
+void test_blocking_until_timeout() {
+    std::cout << "before blocking!" << std::endl;
+    struct timeval start_time, end_time;
+    double time_used = 0;
+    gettimeofday(&start_time, NULL);
+    G_TIME_UTILITY.blocking_until_timeout(100000);
+    gettimeofday(&end_time, NULL);
+    time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+    printf("time used:%lf seconds\n", time_used);
+    std::cout << "after blocking!" << std::endl;
+}
 int main() {
     //test_get_sum_of_binomial();
-    test_get_cube();
+    //test_get_cube();
+    test_blocking_until_timeout();
     
     return 0;
 }
