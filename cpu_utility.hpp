@@ -105,6 +105,53 @@ public:
     inline void byte_alignment(int &num, MB_ALIGN mb) {
         num = ((num + mb - 1) / mb) * mb;
     }
+    short get_bit_from_char(unsigned char ch, short bit_n) {
+        union byte_t
+        {
+            struct bits_t 
+            {
+                unsigned char b0:1;
+                unsigned char b1:1;
+                unsigned char b2:1;
+                unsigned char b3:1;
+                unsigned char b4:1;
+                unsigned char b5:1;
+                unsigned char b6:1;
+                unsigned char b7:1;
+            } bits;
+            unsigned char ch;   
+        };
+        byte_t bt;
+        bt.ch = ch;
+        switch (bit_n)
+        {
+        case 0:
+            return bt.bits.b7;
+            break;
+        case 1:
+            return bt.bits.b6;
+            break;
+        case 2:
+            return bt.bits.b5;
+            break;
+        case 3:
+            return bt.bits.b4;
+            break;
+        case 4:
+            return bt.bits.b3;
+            break;
+        case 5:
+            return bt.bits.b2;
+            break;
+        case 6:
+            return bt.bits.b1;
+            break;
+        case 7:
+            return bt.bits.b0;
+            break;
+        }
+        return -1;
+    }
 };
 
 #define  G_CPU_UTILITY single_instance<cpu_utility>::instance()

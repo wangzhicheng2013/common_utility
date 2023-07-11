@@ -107,10 +107,15 @@ void test_blocking_until_timeout() {
     printf("time used:%lf seconds\n", time_used);
     std::cout << "after blocking!" << std::endl;
 }
+void test_get_bit_from_char() {
+    unsigned char ch = 0xE4;
+    std::cout << G_CPU_UTILITY.get_bit_from_char(ch, 2) << std::endl;
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
-    test_blocking_until_timeout();
+    //test_blocking_until_timeout();
+    test_get_bit_from_char();
     
     return 0;
 }
