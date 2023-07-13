@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/time.h>
 #include "single_instance.hpp"
 typedef struct __tag_ASVL_OFFSCREEN {
     unsigned int u32PixelArrayFormat;
@@ -912,6 +913,157 @@ public:
         fclose(fp);
         return true;
     }
+    double resize_uyvy_to_nv12_not_good(unsigned char* puyvy, 
+                             int w, 
+                             int h, 
+                             unsigned char* pOutnv12y/*must malloc outside*/,
+                             unsigned char* pOutnv12uv/*must malloc outside*/) {
+        //uyuv->nv12
+        //w/2
+        //h/2
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        unsigned char* py = pOutnv12y;
+        unsigned char* puv = pOutnv12uv;
+        for(int i=0; i<h; i+=2)
+        {
+            for(int j=0; j<w; j+=2)
+            {
+                *py = *(puyvy + i*w*2 + j*2 + 1);	//y
+                py++;
+                if(i%4==0&&j%4==0)
+                {
+                    *puv = *(puyvy + i*w*2 + j*2);	//u
+                    puv++;
+                    *puv = *(puyvy + i*w*2 + j*2 + 2);	//v
+                    puv++;
+                }
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;
+    }
+    double resize_uyvy_to_nv12_not_good1(unsigned char* puyvy, 
+                             int w, 
+                             int h, 
+                             unsigned char* nv12_y,
+                             unsigned char* nv12_uv) {
+        // uyuv->nv12
+        // w / 2
+        // h / 2
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int pixels_in_a_row = w << 1;
+        int y_index = 0, u_index = 0, v_index = 0;
+        const auto divisible_by_four = [] (int i) { return 0 == (i & 0x03); };
+        for (int i = 0;i < h;i += 2) {
+            for (int j = 0;j < w;j += 2) {
+                y_index = i * pixels_in_a_row + (j << 1) + 1;
+                *nv12_y++ = puyvy[y_index];
+                if (divisible_by_four(i) && divisible_by_four(j)) {
+                    u_index = y_index - 1;
+                    v_index = y_index + 1;
+                    *nv12_uv++ = puyvy[u_index];
+                    *nv12_uv++ = puyvy[v_index];
+                }
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;
+    }
+    double resize_uyvy_to_nv12_not_good2(unsigned char* puyvy, 
+                             int w, 
+                             int h, 
+                             unsigned char* nv12_y,
+                             unsigned char* nv12_uv) {
+        // uyuv->nv12
+        // w / 2
+        // h / 2
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int pixels_in_a_row = w << 1;
+        int y_index = 0, u_index = 0, v_index = 0;
+        for (int i = 0;i < h;i += 2) {
+            for (int j = 0;j < w;j += 2) {
+                y_index = i * pixels_in_a_row + (j << 1) + 1;
+                *nv12_y++ = puyvy[y_index];
+                if ((0 == (i & 0x03)) && (0 == (j & 0x03))) {
+                    u_index = y_index - 1;
+                    v_index = y_index + 1;
+                    *nv12_uv++ = puyvy[u_index];
+                    *nv12_uv++ = puyvy[v_index];
+                }
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;
+    }
+    double resize_uyvy_to_nv12(unsigned char* puyvy, 
+                             int w, 
+                             int h, 
+                             unsigned char* nv12_y,
+                             unsigned char* nv12_uv) {
+        // uyuv->nv12
+        // w / 2
+        // h / 2
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int pixels_in_a_row = w << 1;
+        int u_index = 0;
+        for (int i = 0;i < h;i += 2) {
+            for (int j = 0;j < w;j += 2) {
+                u_index = i * pixels_in_a_row + (j << 1);
+                *nv12_y++ = puyvy[u_index + 1];
+                if ((0 == (i & 0x03)) && (0 == (j & 0x03))) {
+                    *nv12_uv++ = puyvy[u_index];
+                    *nv12_uv++ = puyvy[u_index + 2];
+                }
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;
+    }
+    void resize_uyvy_to_nv12_(unsigned char* puyvy, 
+                             int w, 
+                             int h, 
+                             unsigned char* nv12_y) {
+        // uyuv->nv12
+        // w / 2
+        // h / 2
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int i = 0;
+        int pixels_in_a_row = w << 1;
+        int size = (w * h) << 1;
+        int lines = 0;
+        bool flag = true;
+        unsigned char* nv2_uv = nv12_y + w * h / 4;
+        while (i < size) {
+            if (0 == i % pixels_in_a_row) {
+                ++lines;
+            }
+            if (lines & 0x01) {       // odd rows
+                *nv12_y++ = puyvy[i + 1];
+                if (flag && (i == ((i >> 3) << 3))) {       // divisible by 8
+                    *nv2_uv++ = puyvy[i];
+                    *nv2_uv++ = puyvy[i + 2];
+                }
+                i += 4;
+            }
+            else {
+                i += pixels_in_a_row;       // skip even lines
+                flag = !flag;               // not get uv value
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        printf("time used:%lf seconds\n", time_used);
+    }
+
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()

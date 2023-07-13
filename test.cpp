@@ -111,11 +111,44 @@ void test_get_bit_from_char() {
     unsigned char ch = 0xE4;
     std::cout << G_CPU_UTILITY.get_bit_from_char(ch, 2) << std::endl;
 }
+void test_resize_uyvy_to_nv12() {
+    const int pic_w = 1920;
+    const int pic_h = 1080;
+    const char *inputPathname  = "./is_unprocessed_4_1920x1080.uyvy";
+    const char *outputPathname = "./is_unprocessed_4_960x540.nv12";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        return;
+    }
+    size_t size = pic_w * pic_h * 2;
+    unsigned char *buf = (unsigned char *)malloc(size * sizeof(unsigned char));
+    fread(buf, 1, size, fin);
+    size_t size_nv12 = pic_w * pic_h / 4 * 3 / 2;
+    unsigned char *nv12 = (unsigned char *)malloc(size_nv12 * sizeof(unsigned char));
+    unsigned char *nv12_y = nv12;
+    unsigned char *nv12_uv = nv12 + pic_w * pic_h / 4;
+    double elapsed = 0;
+    int n = 100;
+    for (int i = 0;i < n;i++) {
+        elapsed += G_IMAGE_UTILITY.resize_uyvy_to_nv12(buf, pic_w, pic_h, nv12_y, nv12_uv);
+    }
+    printf("average elapsed:%lfs\n", elapsed / n);
+    fwrite(nv12, size_nv12, 1, fout);
+    fclose(fin);
+    fclose(fout);
+    free(buf);
+    free(nv12);
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
     //test_blocking_until_timeout();
-    test_get_bit_from_char();
-    
+    //test_get_bit_from_char();
+    test_resize_uyvy_to_nv12();
+
     return 0;
 }
