@@ -623,6 +623,22 @@ private:
         *num_toks = 1;
         return rest_str;
     }
+    // s = "abcd" t = "abcde"
+    char find_the_only_difference(std::string s, std::string t) {
+        if (0 == s.size()) {
+            return 0;
+        }
+        if (s.size() + 1 != t.size()) {
+            return 0;
+        }
+        int i = 0;
+        int size = s.size();
+        char ch = 0;
+        for (;i < size;i++) {
+            ch = ch ^ s[i] ^ t[i];
+        }
+        return ch ^ t[i];
+    }
 };
 
 #define  G_STRING_UTILITY single_instance<string_utility>::instance()
