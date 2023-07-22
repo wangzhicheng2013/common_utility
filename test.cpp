@@ -143,12 +143,16 @@ void test_resize_uyvy_to_nv12() {
     free(buf);
     free(nv12);
 }
+void test_get_index_of_e() {
+    std::cout << G_MATH_UTILITY.get_index_of_e(1) << std::endl;
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
     //test_blocking_until_timeout();
     //test_get_bit_from_char();
-    test_resize_uyvy_to_nv12();
-
+    //test_resize_uyvy_to_nv12();
+    test_get_index_of_e();
+    
     return 0;
 }

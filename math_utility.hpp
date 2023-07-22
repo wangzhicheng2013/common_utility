@@ -390,6 +390,24 @@ public:
         }
         return x1;
     }
+    double get_index_of_e(double x) {
+        double sum = 0;
+        double pre_sum = 1;
+        double x_k = 1;
+        unsigned long k_factorial = 1;
+        unsigned long i = 1;
+        constexpr double PRECISION = 0.00001;
+        while (true) {
+            x_k *= x;
+            k_factorial *= i++;
+            sum = pre_sum + x_k / k_factorial;
+            if (fabs(sum - pre_sum) <= PRECISION) {
+                break;
+            }
+            pre_sum = sum;
+        }
+        return sum;
+    }
 private:
     uint64_t combinations(uint n, uint k) {
         if ((0 == k) || (k == n) || (0 == n)) {
