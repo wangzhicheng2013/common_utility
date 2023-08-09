@@ -146,13 +146,93 @@ void test_resize_uyvy_to_nv12() {
 void test_get_index_of_e() {
     std::cout << G_MATH_UTILITY.get_index_of_e(1) << std::endl;
 }
+int test_nv12_resize() {
+    const int pic_w  = 1920;
+    const int pic_h  = 1536;
+    const int dest_pic_w  = pic_w * 2 / 3;
+    const int dest_pic_h  = pic_h * 2 / 3;
+
+    /* Set up test data's path and output data's path */
+    const char *inputPathname  = "./NV12_1_1920x1536.NV12";
+    const char *outputPathname = "./NV12_resize_1280x1024.NV12";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return -1;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        return -1;
+    }
+    size_t size = pic_w * pic_h * 3 / 2;
+    size_t dest_size = dest_pic_w * dest_pic_h * 3 / 2;
+    /* Allocate memory for uyvy */
+    unsigned char *src_img = (unsigned char *)malloc(size * sizeof(unsigned char));
+    unsigned char *dest_img = (unsigned char *)malloc(dest_size * sizeof(unsigned char));
+
+    /* Read file data to buffer */
+    fread(src_img, size, 1, fin);
+    
+    G_IMAGE_UTILITY.nv12_resize(src_img, dest_img, pic_w, pic_h, dest_pic_w, dest_pic_h);
+    /* Write data of buf to fout */
+    fwrite(dest_img, dest_size, 1, fout);
+
+    /* Close the file */
+    fclose(fin);
+    fclose(fout);
+
+    /* Free the allocation memory */
+    free(src_img);
+    free(dest_img);
+    return 0;     
+}
+int test_uyvy_resize() {
+    const int pic_w  = 1920;
+    const int pic_h  = 1080;
+    const int dest_pic_w  = pic_w * 2 / 3;
+    const int dest_pic_h  = pic_h * 2 / 3;
+
+    /* Set up test data's path and output data's path */
+    const char *inputPathname  = "./11_1920x1080.UYVY";
+    const char *outputPathname = "./11_resize_1280x720.UYVY";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return -1;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        return -1;
+    }
+    size_t size = pic_w * pic_h * 2;
+    size_t dest_size = dest_pic_w * dest_pic_h * 2;
+    /* Allocate memory for uyvy */
+    unsigned char *src_img = (unsigned char *)malloc(size * sizeof(unsigned char));
+    unsigned char *dest_img = (unsigned char *)malloc(dest_size * sizeof(unsigned char));
+
+    /* Read file data to buffer */
+    fread(src_img, size, 1, fin);
+    
+    G_IMAGE_UTILITY.uyvy_resize(src_img, dest_img, pic_w, pic_h, dest_pic_w, dest_pic_h);
+    /* Write data of buf to fout */
+    fwrite(dest_img, dest_size, 1, fout);
+
+    /* Close the file */
+    fclose(fin);
+    fclose(fout);
+
+    /* Free the allocation memory */
+    free(src_img);
+    free(dest_img);
+    return 0;     
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
     //test_blocking_until_timeout();
     //test_get_bit_from_char();
     //test_resize_uyvy_to_nv12();
-    test_get_index_of_e();
+    //test_get_index_of_e();
+    //test_nv12_resize();
+    test_uyvy_resize();
     
     return 0;
 }

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <math.h>
 #include "single_instance.hpp"
 typedef struct __tag_ASVL_OFFSCREEN {
     unsigned int u32PixelArrayFormat;
@@ -1063,7 +1064,388 @@ public:
         double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
         printf("time used:%lf seconds\n", time_used);
     }
+    static void get_channel_value_from_nv12(const unsigned char* img,
+                                    size_t width,
+                                    size_t height,
+                                    size_t y_size,
+                                    int x,
+                                    int y,
+                                    unsigned char& y_val,
+                                    unsigned char& u_val,
+                                    unsigned char& v_val ) {
+        int y_index = y * width + x;
+        int uv_index = y_size + (y / 2) * width + (x / 2) * 2;
+        y_val = img[y_index];
+        u_val = img[uv_index];
+        v_val = img[uv_index + 1];
+    }
+    static void get_channel_value_from_uyvy(const unsigned char* img,
+                                    size_t width,
+                                    size_t height,
+                                    int x,
+                                    int y,
+                                    unsigned char& u_val,
+                                    unsigned char& y1_val,
+                                    unsigned char& v_val,
+                                    unsigned char& y2_val ) {
+        int u_index = y * (width << 1) + (x << 1);
+        u_val = img[u_index];
+        y1_val = img[u_index + 1];
+        v_val = img[u_index + 2];
+        y2_val = img[u_index + 3];
+    }
+    static void set_channel_value_to_nv12(unsigned char* img,
+                                    size_t width,
+                                    size_t height,
+                                    size_t y_size,
+                                    int x,
+                                    int y,
+                                    unsigned char y_val,
+                                    unsigned char u_val,
+                                    unsigned char v_val ) {
+        int y_index = y * width + x;
+        int uv_index = y_size + (y / 2) * width + (x / 2) * 2;
+        img[y_index] = y_val;
+        img[uv_index] = u_val;
+        img[uv_index + 1] = v_val;
+    }
+    static void set_channel_value_to_uyvy(unsigned char* img,
+                                   size_t width,
+                                   size_t height,
+                                   int x,
+                                   int y,
+                                   unsigned char u_val,
+                                   unsigned char y1_val,
+                                   unsigned char v_val,
+                                   unsigned char y2_val) {
+        int u_index = y * (width << 1) + (x << 1);
+        img[u_index] = u_val;
+        img[u_index + 1] = y1_val;
+        img[u_index + 2] = v_val;
+        img[u_index + 3] = y2_val;
+    }
+    static inline double get_bilinear_interpolation(double x1, double x2,
+                                             double y1, double y2, 
+                                             double x, double y,
+                                             double f11, double f21,
+                                             double f12, double f22)  {
+        double tmp = (x2 - x1) * (y2 - y1);
+        return f11 * (x2 - x) * (y2 - y) / tmp
+            +  f21 * (x - x1) * (y2 - y) / tmp
+            +  f12 * (x2 - x) * (y - y1) / tmp
+            +  f22 * (x - x1) * (y - y1) / tmp;
+    }
+    void nv12_resize(const unsigned char* src_img, 
+                unsigned char* dest_img,
+                size_t src_width,
+                size_t src_height,
+                size_t dest_width,
+                size_t dest_height) {
+        size_t dest_x = 0, dest_y = 0;
+        double src_x = 0, src_y = 0;
+        // find 4 points
+        int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        // y channel val for 4 points
+        unsigned char y11 = 0, y12 = 0, y21 = 0, y22 = 0;
+        // u channel val for 4 points
+        unsigned char u11 = 0, u12 = 0, u21 = 0, u22 = 0;
+        // v channel val for 4 points
+        unsigned char v11 = 0, v12 = 0, v21 = 0, v22 = 0;
+        // the target interpolation point yuv value
+        double dest_y_val = 0, dest_u_val = 0, dest_v_val = 0;
+        size_t src_y_size = src_width * src_height;
+        size_t dest_y_size = dest_width * dest_height;
+        for (;dest_y < dest_height;++dest_y) {
+            for (dest_x = 0;dest_x < dest_width;++dest_x) {
+                src_x = (dest_x + 0.5) * src_width / dest_width - 0.5;
+                src_y = (dest_y + 0.5) * src_height / dest_height - 0.5;
+                x1 = floor(src_x);
+                x2 = ceil(src_x);
+                y1 = floor(src_y);
+                y2 = ceil(src_y);
 
+                get_channel_value_from_nv12(src_img, src_width, src_height, src_y_size, x1, y1, y11, u11, v11);
+                get_channel_value_from_nv12(src_img, src_width, src_height, src_y_size, x1, y2, y12, u12, v12);
+                get_channel_value_from_nv12(src_img, src_width, src_height, src_y_size, x2, y1, y21, u21, v21);
+                get_channel_value_from_nv12(src_img, src_width, src_height, src_y_size, x2, y2, y22, u22, v22);
+
+                dest_y_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, y11, y21, y12, y22);
+                dest_u_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, u11, u21, u12, u22);
+                dest_v_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, v11, v21, v12, v22);
+
+                set_channel_value_to_nv12(dest_img, dest_width, dest_height, dest_y_size, dest_x, dest_y, dest_y_val, dest_u_val, dest_v_val);
+            }
+        }
+    }
+    void uyvy_resize(const unsigned char* src_img, 
+                unsigned char* dest_img,
+                size_t src_width,
+                size_t src_height,
+                size_t dest_width,
+                size_t dest_height) {
+        size_t dest_x = 0, dest_y = 0;
+        double src_x = 0, src_y = 0;
+        // find 4 points
+        int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        // y channel val for 4 points
+        unsigned char y11_1 = 0, y12_1 = 0, y21_1 = 0, y22_1 = 0;
+        unsigned char y11_2 = 0, y12_2 = 0, y21_2 = 0, y22_2 = 0;
+        // u channel val for 4 points
+        unsigned char u11 = 0, u12 = 0, u21 = 0, u22 = 0;
+        // v channel val for 4 points
+        unsigned char v11 = 0, v12 = 0, v21 = 0, v22 = 0;
+        // the target interpolation point yuv value
+        double dest_y1_val = 0, dest_y2_val = 0, dest_u_val = 0, dest_v_val = 0;
+        for (;dest_y < dest_height;++dest_y) {
+            for (dest_x = 0;dest_x < dest_width;++dest_x) {
+                src_x = (dest_x + 0.5) * src_width / dest_width - 0.5;
+                src_y = (dest_y + 0.5) * src_height / dest_height - 0.5;
+                x1 = floor(src_x);
+                x2 = ceil(src_x);
+                y1 = floor(src_y);
+                y2 = ceil(src_y);
+
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y1, u11, y11_1, v11, y11_2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y2, u12, y12_1, v12, y12_2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y1, u21, y21_1, v21, y21_2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y2, u22, y22_1, v22, y22_2);
+
+                dest_y1_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, y11_1, y21_1, y12_1, y22_1);
+                dest_y2_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, y11_2, y21_2, y12_2, y22_2);
+                dest_u_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, u11, u21, u12, u22);
+                dest_v_val = get_bilinear_interpolation(x1, x2, y1, y2, src_x, src_y, v11, v21, v12, v22);
+
+                set_channel_value_to_uyvy(dest_img, dest_width, dest_height, dest_x, dest_y, dest_u_val, dest_y1_val, dest_v_val, dest_y2_val);
+            }
+        }
+    }
+    static double bicubicpoly(double x) {
+        double abs_x = abs(x);
+        const float a = -0.5;
+        if (abs_x <= 1.0) {
+            return (a + 2) * pow(abs_x, 3) - (a + 3) * pow(abs_x, 2) + 1;
+        }
+        else if(abs_x < 2.0) {
+            return a * pow(abs_x, 3) - 5 * a * pow(abs_x, 2) + 8 * a * abs_x - 4 * a;
+        }
+        return 0.0;
+    }
+    void uyvy_resize_with_bicubicpoly(const unsigned char* src_img, 
+                unsigned char* dest_img,
+                size_t src_width,
+                size_t src_height,
+                size_t dest_width,
+                size_t dest_height) {
+        size_t dest_x = 0, dest_y = 0;
+        double src_x = 0, src_y = 0;
+        // the target interpolation point yuv value
+        double dest_y1_val = 0, dest_y2_val = 0, dest_u_val = 0, dest_v_val = 0;
+        int x0 = 0, x1 = 0, x2 = 0, x3 = 0;
+        int y0 = 0, y1 = 0, y2 = 0, y3 = 0;
+        double dist_x0 = 0, dist_x1 = 0, dist_x2 = 0, dist_x3 = 0;
+        double dist_y0 = 0, dist_y1 = 0, dist_y2 = 0, dist_y3 = 0;
+     	double dist_x0y0 = 0, dist_x0y1 = 0, dist_x0y2 = 0, dist_x0y3 = 0, 
+               dist_x1y0 = 0, dist_x1y1 = 0, dist_x1y2 = 0, dist_x1y3 = 0,
+               dist_x2y0 = 0, dist_x2y1 = 0, dist_x2y2 = 0, dist_x2y3 = 0,
+               dist_x3y0 = 0, dist_x3y1 = 0, dist_x3y2 = 0, dist_x3y3 = 0;
+        // the target points y u v
+        unsigned char u_x0y0 = 0, u_x0y1 = 0, u_x0y2 = 0, u_x0y3 = 0, 
+               u_x1y0 = 0, u_x1y1 = 0, u_x1y2 = 0, u_x1y3 = 0,
+               u_x2y0 = 0, u_x2y1 = 0, u_x2y2 = 0, u_x2y3 = 0,
+               u_x3y0 = 0, u_x3y1 = 0, u_x3y2 = 0, u_x3y3 = 0;
+
+        unsigned char y1_x0y0 = 0, y1_x0y1 = 0, y1_x0y2 = 0, y1_x0y3 = 0, 
+               y1_x1y0 = 0, y1_x1y1 = 0, y1_x1y2 = 0, y1_x1y3 = 0,
+               y1_x2y0 = 0, y1_x2y1 = 0, y1_x2y2 = 0, y1_x2y3 = 0,
+               y1_x3y0 = 0, y1_x3y1 = 0, y1_x3y2 = 0, y1_x3y3 = 0;
+
+        unsigned char v_x0y0 = 0, v_x0y1 = 0, v_x0y2 = 0, v_x0y3 = 0, 
+               v_x1y0 = 0, v_x1y1 = 0, v_x1y2 = 0, v_x1y3 = 0,
+               v_x2y0 = 0, v_x2y1 = 0, v_x2y2 = 0, v_x2y3 = 0,
+               v_x3y0 = 0, v_x3y1 = 0, v_x3y2 = 0, v_x3y3 = 0;
+
+        unsigned char y2_x0y0 = 0, y2_x0y1 = 0, y2_x0y2 = 0, y2_x0y3 = 0, 
+               y2_x1y0 = 0, y2_x1y1 = 0, y2_x1y2 = 0, y2_x1y3 = 0,
+               y2_x2y0 = 0, y2_x2y1 = 0, y2_x2y2 = 0, y2_x2y3 = 0,
+               y2_x3y0 = 0, y2_x3y1 = 0, y2_x3y2 = 0, y2_x3y3 = 0;   
+        for (;dest_y < dest_height;++dest_y) {
+            for (dest_x = 0;dest_x < dest_width;++dest_x) {
+                // get the src coordinate
+                src_x = (dest_x + 0.5) * src_width / dest_width - 0.5;
+                src_y = (dest_y + 0.5) * src_height / dest_height - 0.5;
+                // get the target 116 points
+                x0 = floor(src_x);
+                x1 = ceil(src_x);
+                y0 = floor(src_y);
+                y1 = ceil(src_y);
+
+                x2 = x0 - 1;
+                if (x2 < 0) {
+                    x2 = 0;
+                }
+                x3 = x1 + 1;
+                if (x3 >= src_width) {
+                    x3 = src_width - 1;
+                }
+
+                y2 = y0 - 1;
+                if (y2 < 0) {
+                    y2 = 0;
+                }
+                y3 = y1 + 1;
+                if (y3 >= src_height) {
+                    y3 = src_height - 1;
+                }
+                // compute bicubicpoly
+                dist_x0 = bicubicpoly(src_x - x0);
+                dist_x1 = bicubicpoly(src_x - x1);
+                dist_x2 = bicubicpoly(src_x - x2);
+                dist_x3 = bicubicpoly(src_x - x3);
+
+                dist_y0 = bicubicpoly(src_y - y0);
+                dist_y1 = bicubicpoly(src_y - y1);
+                dist_y2 = bicubicpoly(src_y - y2);
+                dist_y3 = bicubicpoly(src_y - y3);
+                // make 16 point weight
+                dist_x0y0 = dist_x0 * dist_y0;
+                dist_x0y1 = dist_x0 * dist_y1;
+				dist_x0y2 = dist_x0 * dist_y2;
+				dist_x0y3 = dist_x0 * dist_y3;
+
+				dist_x1y0 = dist_x1 * dist_y0;
+				dist_x1y1 = dist_x1 * dist_y1;
+				dist_x1y2 = dist_x1 * dist_y2;
+				dist_x1y3 = dist_x1 * dist_y3;
+
+				dist_x2y0 = dist_x2 * dist_y0;
+				dist_x2y1 = dist_x2 * dist_y1;
+				dist_x2y2 = dist_x2 * dist_y2;
+				dist_x2y3 = dist_x2 * dist_y3;
+                
+				dist_x3y0 = dist_x3 * dist_y0;
+				dist_x3y1 = dist_x3 * dist_y1;
+				dist_x3y2 = dist_x3 * dist_y2;
+                dist_x3y3 = dist_x3 * dist_y3;
+
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x0, y0, 
+                                 u_x0y0, y1_x0y0, v_x0y0, y2_x0y0);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x0, y1, 
+                                 u_x0y1, y1_x0y1, v_x0y1, y2_x0y1);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x0, y2, 
+                                 u_x0y2, y1_x0y2, v_x0y2, y2_x0y2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x0, y3, 
+                                 u_x0y3, y1_x0y3, v_x0y3, y2_x0y3);
+                
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y0, 
+                                 u_x1y0, y1_x1y0, v_x1y0, y2_x1y0);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y1, 
+                                 u_x1y1, y1_x1y1, v_x1y1, y2_x1y1);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y2, 
+                                 u_x1y2, y1_x1y2, v_x1y2, y2_x1y2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x1, y3, 
+                                 u_x1y3, y1_x1y3, v_x1y3, y2_x1y3);
+
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y0, 
+                                 u_x2y0, y1_x2y0, v_x2y0, y2_x2y0);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y1, 
+                                 u_x2y1, y1_x2y1, v_x2y1, y2_x2y1);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y2, 
+                                 u_x2y2, y1_x2y2, v_x2y2, y2_x2y2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x2, y3, 
+                                 u_x2y3, y1_x2y3, v_x2y3, y2_x2y3);
+
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x3, y0, 
+                                 u_x3y0, y1_x3y0, v_x3y0, y2_x3y0);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x3, y1, 
+                                 u_x3y1, y1_x3y1, v_x3y1, y2_x3y1);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x3, y2, 
+                                 u_x3y2, y1_x3y2, v_x3y2, y2_x3y2);
+                get_channel_value_from_uyvy(src_img, src_width, src_height, x3, y3, 
+                                 u_x3y3, y1_x3y3, v_x3y3, y2_x3y3);
+
+                dest_u_val = u_x0y0 * dist_x0y0 +
+                             u_x0y1 * dist_x0y1 +
+                             u_x0y2 * dist_x0y2 +
+                             u_x0y3 * dist_x0y3 +
+
+                             u_x1y0 * dist_x1y0 +
+                             u_x1y1 * dist_x1y1 +
+                             u_x1y2 * dist_x1y2 +
+                             u_x1y3 * dist_x1y3 +
+
+                             u_x2y0 * dist_x2y0 +
+                             u_x2y1 * dist_x2y1 +
+                             u_x2y2 * dist_x2y2 +
+                             u_x2y3 * dist_x2y3 +
+
+                             u_x3y0 * dist_x3y0 +
+                             u_x3y1 * dist_x3y1 +
+                             u_x3y2 * dist_x3y2 +
+                             u_x3y3 * dist_x3y3;
+
+                dest_y1_val = y1_x0y0 * dist_x0y0 +
+                             y1_x0y1 * dist_x0y1 +
+                             y1_x0y2 * dist_x0y2 +
+                             y1_x0y3 * dist_x0y3 +
+
+                             y1_x1y0 * dist_x1y0 +
+                             y1_x1y1 * dist_x1y1 +
+                             y1_x1y2 * dist_x1y2 +
+                             y1_x1y3 * dist_x1y3 +
+
+                             y1_x2y0 * dist_x2y0 +
+                             y1_x2y1 * dist_x2y1 +
+                             y1_x2y2 * dist_x2y2 +
+                             y1_x2y3 * dist_x2y3 +
+
+                             y1_x3y0 * dist_x3y0 +
+                             y1_x3y1 * dist_x3y1 +
+                             y1_x3y2 * dist_x3y2 +
+                             y1_x3y3 * dist_x3y3;
+
+                dest_v_val = v_x0y0 * dist_x0y0 +
+                             v_x0y1 * dist_x0y1 +
+                             v_x0y2 * dist_x0y2 +
+                             v_x0y3 * dist_x0y3 +
+
+                             v_x1y0 * dist_x1y0 +
+                             v_x1y1 * dist_x1y1 +
+                             v_x1y2 * dist_x1y2 +
+                             v_x1y3 * dist_x1y3 +
+
+                             v_x2y0 * dist_x2y0 +
+                             v_x2y1 * dist_x2y1 +
+                             v_x2y2 * dist_x2y2 +
+                             v_x2y3 * dist_x2y3 +
+
+                             v_x3y0 * dist_x3y0 +
+                             v_x3y1 * dist_x3y1 +
+                             v_x3y2 * dist_x3y2 +
+                             v_x3y3 * dist_x3y3;
+
+                dest_y2_val = y2_x0y0 * dist_x0y0 +
+                             y2_x0y1 * dist_x0y1 +
+                             y2_x0y2 * dist_x0y2 +
+                             y2_x0y3 * dist_x0y3 +
+
+                             y2_x1y0 * dist_x1y0 +
+                             y2_x1y1 * dist_x1y1 +
+                             y2_x1y2 * dist_x1y2 +
+                             y2_x1y3 * dist_x1y3 +
+
+                             y2_x2y0 * dist_x2y0 +
+                             y2_x2y1 * dist_x2y1 +
+                             y2_x2y2 * dist_x2y2 +
+                             y2_x2y3 * dist_x2y3 +
+
+                             y2_x3y0 * dist_x3y0 +
+                             y2_x3y1 * dist_x3y1 +
+                             y2_x3y2 * dist_x3y2 +
+                             y2_x3y3 * dist_x3y3;
+                set_channel_value_to_uyvy(dest_img, dest_width, dest_height, dest_x, dest_y, dest_u_val, dest_y1_val, dest_v_val, dest_y2_val);
+            }
+        }
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
