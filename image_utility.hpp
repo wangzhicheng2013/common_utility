@@ -1446,6 +1446,27 @@ public:
             }
         }
     }
+    void reduce_uyvy_1_4(const unsigned char* src_img,
+                unsigned char* dest_img,
+                size_t src_size,
+                size_t src_width) {
+        size_t start = 0;
+        size_t i = 0;
+        int count = 0;
+        size_t span = 4 * src_width;
+        while (start < src_size) {
+            memcpy(dest_img, src_img + i, 4);
+            dest_img += 4;
+            count += 2;
+            if ((count << 1) >= src_width) {
+                    start += span;
+                    i = start;
+                    count = 0;
+                    continue;
+            }
+            i += 8;
+        }
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
