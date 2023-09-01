@@ -224,6 +224,42 @@ int test_uyvy_resize() {
     free(dest_img);
     return 0;     
 }
+int test_uyvy_draw_circle() {
+    const int pic_w  = 1920;
+    const int pic_h  = 1080;
+    const int dest_pic_w  = pic_w;
+    const int dest_pic_h  = pic_h;
+
+    /* Set up test data's path and output data's path */
+    const char *inputPathname  = "./11_1920x1080.UYVY";
+    const char *outputPathname = "./11_circle_1920x1080.UYVY";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return -1;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        return -1;
+    }
+    size_t size = pic_w * pic_h * 2;
+    size_t dest_size = dest_pic_w * dest_pic_h * 2;
+    /* Allocate memory for uyvy */
+    unsigned char *src_img = (unsigned char *)malloc(size * sizeof(unsigned char));
+    /* Read file data to buffer */
+    fread(src_img, size, 1, fin);
+    
+    G_IMAGE_UTILITY.uyvy_draw_circle(src_img, pic_w, pic_h, 100, 100, 10, 255, 0, 0);
+    /* Write data of buf to fout */
+    fwrite(src_img, dest_size, 1, fout);
+
+    /* Close the file */
+    fclose(fin);
+    fclose(fout);
+
+    /* Free the allocation memory */
+    free(src_img);
+    return 0;        
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
@@ -232,7 +268,8 @@ int main() {
     //test_resize_uyvy_to_nv12();
     //test_get_index_of_e();
     //test_nv12_resize();
-    test_uyvy_resize();
-    
+    //test_uyvy_resize();
+    test_uyvy_draw_circle();
+
     return 0;
 }

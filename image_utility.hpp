@@ -1467,6 +1467,138 @@ public:
             i += 8;
         }
     }
+    void uyvy_set_color(unsigned char* pic, 
+                int pic_w,
+                int i, 
+                int j, 
+                int Y,
+                int U,
+                int V) {
+        int pixels_in_a_row = pic_w << 1;
+        int u_index = i * pixels_in_a_row + (j << 1);
+        int y_index = u_index + 1;
+        int v_index = 0;
+        if (pic[y_index] != Y) {
+            pic[y_index] = Y;
+        }
+        if (1 == y_index % 4) {
+            if (pic[u_index] != U) {
+                pic[u_index] = U;
+            }
+            v_index = y_index + 1; 
+            if (pic[v_index] != V) {
+                pic[v_index] = V;
+            }
+        }
+    }
+    void uyvy_fill_zone(unsigned char* pic, 
+                int pic_w,
+                int A_i, 
+                int A_j,
+                int B_i,
+                int B_j, 
+                int Y,
+                int U,
+                int V) {
+        int start_i = A_i, end_i = B_i, start_j = A_j, end_j = B_j;
+        if (A_i > B_i) {
+            start_i = B_i;
+            end_i = A_i; 
+        }
+        if (A_j > B_j) {
+            start_j = B_j;
+            end_j = A_j;
+        }
+        for (int j = start_j;j <= end_j;j++) {
+            for (int i = start_i;i <= end_i;i++) {
+                uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            }
+        }
+    }
+    double uyvy_draw_circle(unsigned char* pic, 
+                    int pic_w,
+                    int pic_h, 
+                    int x, 
+                    int y, 
+                    int r,
+                    int R,
+                    int G,
+                    int B) {
+        if (x <= 0 || x >= pic_w) {
+            return 0;
+        }
+        if (y <= 0 || y >= pic_h) {
+            return 0;
+        }
+        if ((x + r > pic_w) || (x - r) < 0) {
+            return 0;
+        }
+        if ((y + r > pic_h) || (y - r) < 0) {
+            return 0;
+        }
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        /* RGB convert YUV */
+        int Y =  0.299  * R + 0.587  * G + 0.114  * B;
+        int U = -0.1687 * R + 0.3313 * G + 0.5    * B + 128;
+        int V =  0.5    * R - 0.4187 * G - 0.0813 * B + 128;
+        int i = 0, j = 0;
+        // find the target point
+        int tx = 0, ty = r, d = 3 - 2 * r;
+        while (tx <= ty) {
+            // 1 point
+            i = x + tx;
+            j = y + ty;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 2 point
+            i = x + tx;
+            j = y - ty;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 3 point
+            i = x - tx;
+            j = y + ty;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 4 point
+            i = x - tx;
+            j = y - ty;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 5 point
+            i = x + ty;
+            j = y + tx;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 6 point
+            i = x + ty;
+            j = y - tx;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 7 point
+            i = x - ty;
+            j = y + tx;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            // 8 point
+            i = x - ty;
+            j = y - tx;
+            uyvy_set_color(pic, pic_w, i, j, Y, U, V);
+            uyvy_fill_zone(pic, pic_w, x, y, i, j, Y, U, V);
+            if (d <= 0) {
+                d += (tx << 2) + 6;
+            }
+            else {
+                d += ((tx - ty) << 2) + 10;
+                --ty;
+            }
+            ++tx;
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
