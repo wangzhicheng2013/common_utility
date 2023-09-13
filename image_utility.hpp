@@ -1475,7 +1475,7 @@ public:
                 int U,
                 int V) {
         int pixels_in_a_row = pic_w << 1;
-        int u_index = i * pixels_in_a_row + (j << 1);
+        int u_index = j * pixels_in_a_row + (i << 1);
         int y_index = u_index + 1;
         int v_index = 0;
         if (pic[y_index] != Y) {
