@@ -1628,6 +1628,37 @@ public:
         double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
         return time_used;        
     }
+    double convert_i420_uyvy(const unsigned char *i420,
+                             int width,
+                             int height,
+                             unsigned char *uyvy) {
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int y_size = width * height;
+        int uv_size = y_size / 4;
+        const unsigned char* i420_y = i420;
+        const unsigned char* i420_u = i420_y + y_size;
+        const unsigned char* i420_v = i420_u + uv_size;
+        int y_stride = width;
+        int uv_stride = (width >> 1);
+        int y_index = 0;
+        int u_index = 0;
+        int v_index = 0;
+        for (int i = 0;i < height;++i) {
+            for (int j = 0;j < width;j += 2) {
+                v_index = u_index = (i >> 1) * uv_stride + (j >> 1);
+                y_index = i * y_stride + j;
+                uyvy[0] = i420_u[u_index];      // u
+                uyvy[1] = i420_y[y_index];      // y
+                uyvy[2] = i420_v[v_index];      // v
+                uyvy[3] = i420_y[y_index + 1];  // y
+                uyvy += 4;
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;        
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
