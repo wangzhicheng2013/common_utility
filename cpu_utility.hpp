@@ -54,7 +54,7 @@ public:
 	}
     bool get_top_info_by_process(const char *process_name_key, int field_index, char *info) {
         char cmd[128] = { 0 };
-        snprintf(cmd, sizeof(cmd), "top -bn 1 | grep %s", process_name_key);
+        snprintf(cmd, sizeof(cmd), "top -bn 1 | grep %s | grep -v \"grep\"", process_name_key);
         FILE *fp = popen(cmd, "r");
         if (!fp) {
             return false;
