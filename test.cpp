@@ -332,6 +332,42 @@ int test_convert_i420_uyvy() {
     free(dest_img);
     return 0;        
 }
+int test_convert_uyvy_nv12() {
+    const int pic_w  = 1920;
+    const int pic_h  = 1080;
+    const int dest_pic_w  = pic_w;
+    const int dest_pic_h  = pic_h;
+
+    /* Set up test data's path and output data's path */
+    const char *inputPathname  = "./11_1920x1080.UYVY";
+    const char *outputPathname = "./11_1920x1080.nv12";
+    FILE *fin  = fopen(inputPathname , "rb+");
+    if (!fin) {
+        return -1;
+    }
+    FILE *fout = fopen(outputPathname, "wb+");
+    if (!fout) {
+        fclose(fin);
+        return -1;
+    }
+    size_t size = pic_w * pic_h * 2;
+    size_t dest_size = dest_pic_w * dest_pic_h * 3 / 2;
+    /* Allocate memory for uyvy */
+    unsigned char *src_img = (unsigned char *)malloc(size * sizeof(unsigned char));
+    /* Read file data to buffer */
+    fread(src_img, size, 1, fin);
+    fclose(fin);
+    unsigned char *dest_img = (unsigned char *)malloc(dest_size * sizeof(unsigned char));
+    std::cout << G_IMAGE_UTILITY.convert_uyvy_nv12(src_img, pic_w, pic_h, dest_img) << std::endl;
+    free(src_img);
+    /* Write data of buf to fout */
+    fwrite(dest_img, dest_size, 1, fout);
+    /* Close the file */
+    fclose(fout);
+    /* Free the allocation memory */
+    free(dest_img);
+    return 0;        
+}
 int main() {
     //test_get_sum_of_binomial();
     //test_get_cube();
@@ -343,7 +379,8 @@ int main() {
     //test_uyvy_resize();
     //test_uyvy_draw_circle();
     //test_convert_uyvy_i420();
-    test_convert_i420_uyvy();
+    //test_convert_i420_uyvy();
+    test_convert_uyvy_nv12();
     
     return 0;
 }

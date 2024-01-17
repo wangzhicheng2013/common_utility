@@ -1659,6 +1659,37 @@ public:
         double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
         return time_used;        
     }
+    double convert_uyvy_nv12(unsigned const char *uyvy,
+                           int width,
+                           int height,
+                           unsigned char *nv12) {
+        struct timeval start_time, end_time;
+        gettimeofday(&start_time, NULL);
+        int pixels_in_a_row = width << 1;
+        int u_index = 0;
+        int y_size = width * height;
+        int uv_size = y_size / 4;
+        unsigned char* nv12_y = nv12;
+        unsigned char* nv12_u = nv12_y + y_size;
+        unsigned char* nv12_v = nv12_u + 1;
+
+        for (int i = 0;i < height;++i) {
+            for (int j = 0;j < width;j += 2) {
+                u_index = i * pixels_in_a_row + (j << 1);
+                *nv12_y++ = uyvy[u_index + 1];
+                *nv12_y++ = uyvy[u_index + 3];
+                if (0 == (i & 0x01)) {      // odd lines
+                    *nv12_u = uyvy[u_index];
+                    *nv12_v = uyvy[u_index + 2];
+                    nv12_u += 2;
+                    nv12_v += 2;
+                }
+            }
+        }
+        gettimeofday(&end_time, NULL);
+        double time_used = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
+        return time_used;        
+    }
 };
 
 #define  G_IMAGE_UTILITY single_instance<image_utility>::instance()
