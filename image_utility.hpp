@@ -1668,7 +1668,6 @@ public:
         int pixels_in_a_row = width << 1;
         int u_index = 0;
         int y_size = width * height;
-        int uv_size = y_size / 4;
         unsigned char* nv12_y = nv12;
         unsigned char* nv12_u = nv12_y + y_size;
         unsigned char* nv12_v = nv12_u + 1;
